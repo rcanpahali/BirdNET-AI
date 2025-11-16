@@ -1,0 +1,17 @@
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+birdnetlib==0.17.0
+# TensorFlow: Using 2.20.0 for Python 3.13 compatibility
+# Note: For Python 3.13, TensorFlow requires numpy>=2.1.0
+# If you encounter issues, consider using Python 3.11 or 3.12 instead
+tensorflow>=2.20.0
+# librosa: Allow newer versions that may support numpy 2.x
+librosa>=0.10.1
+# resampy: Required by librosa for audio resampling
+resampy>=0.4.2
+soundfile==0.12.1
+# numpy: Let pip resolve the version based on Python version
+# Python 3.13 requires numpy>=2.1.0 for TensorFlow
+# Python 3.11/3.12 can use numpy<2.0.0
+
