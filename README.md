@@ -81,22 +81,6 @@ docker-compose up --build
 rm -rf ~/.local/share/birdnetlib  # Clear cache
 ```
 
-## Development
-
-### Running All Services
-
-**Docker:**
-
-```bash
-docker-compose up
-```
-
-**Local (manual control):**
-
-- Terminal 1: `cd backend/birdnet-backend && ./run.sh`
-- Terminal 2: `cd backend/express-backend && npm run dev`
-- Terminal 3: `cd frontend && npm start`
-
 **Type checking (optional):**
 
 ```bash
