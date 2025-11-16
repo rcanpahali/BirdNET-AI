@@ -1,11 +1,11 @@
 """
-Configuration settings for the Bird Sound Analyzer API.
+Configuration settings for the BirdNET Analyzer API.
 """
 import os
 from typing import List
 
 # API Configuration
-API_TITLE = "Bird Sound Analyzer API"
+API_TITLE = "BirdNET Analyzer API"
 API_VERSION = "1.0.0"
 API_DESCRIPTION = "REST API for analyzing bird sounds using BirdNET"
 

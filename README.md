@@ -1,6 +1,6 @@
-# Bird Sound Analyzer
+# BirdNET-AI Analyzer
 
-A web application for analyzing bird sounds using the BirdNET AI. Upload audio files to detect bird species with confidence scores and time ranges.
+A web application for analyzing bird sounds using the BirdNET AI model. Upload audio files to detect bird species with confidence scores and time ranges.
 
 ## Features
 

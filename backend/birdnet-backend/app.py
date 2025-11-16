@@ -1,5 +1,5 @@
 """
-Bird Sound Analyzer API
+BirdNET-AI Analyzer API
 
 A FastAPI application for analyzing bird sounds using BirdNET.
 """
@@ -80,7 +80,7 @@ async def startup_event():
 
 @app.get("/")
 async def root():
-    return {"message": "Bird Sound Analyzer API"}
+    return {"message": "BirdNET-AI Analyzer API"}
 
 @app.get("/health")
 async def health():
