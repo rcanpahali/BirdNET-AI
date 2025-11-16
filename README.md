@@ -39,9 +39,7 @@ docker-compose up --build
 **Backend:**
 ```bash
 cd backend
-./run.sh  # macOS/Linux - no activation needed!
-# OR
-run.bat   # Windows
+./run.sh
 ```
 
 **Frontend (new terminal):**
@@ -249,13 +247,11 @@ cd frontend && npm start
 
 ### Helper Scripts
 
-The `run.sh` (macOS/Linux) and `run.bat` (Windows) scripts:
+The `run.sh` (macOS/Linux)
 - Automatically use the virtual environment
 - Create venv if it doesn't exist
 - Install dependencies if needed
 - Start the server
-
-No need to manually activate the virtual environment!
 
 ## Architecture Overview
 
