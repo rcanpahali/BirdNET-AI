@@ -12,12 +12,12 @@
 - **server/birdnet-api**: Python 3.11 + FastAPI, `birdnetlib` for inference, TensorFlow runtime, Uvicorn ASGI server, depends on `ffmpeg` and `libsndfile` being available.
 - **server/express-api**: Node.js 20 + Express, TypeScript compiled via `ts-node-dev`/`tsc`, Axios for proxying, Multer for upload parsing, `better-sqlite3` for persistence.
 - **Container base images**: `python:3.11-slim` for the analyzer, `node:20-alpine` for the proxy, and `node:18-alpine` for the client.
-- **Shared tooling**: npm workspaces orchestrate all packages; docker-compose coordinates multi-service development.
+- **Shared tooling**: npm workspaces plus Turborepo orchestrate all packages; docker-compose coordinates multi-service development.
 
 ## Local Development
 
 1. Run `npm install` at the repository root to install dependencies for all workspaces.
-2. Start the orchestrated dev environment with `npm start` from the root; this launches the FastAPI backend, Express proxy, and React dev server together.
+2. Start the orchestrated dev environment with `npm start` from the root for Turbo's interactive dashboard.
 3. To run services individually, use `./server/birdnet-api/run.sh`, `npm run dev --workspace server/express-api`, and `npm start --workspace birdnet-client`.
 4. Ensure `python3.11` is available locally; if the virtual environment path moves or breaks, rebuild it with `rm -rf server/birdnet-api/venv && ./server/birdnet-api/run.sh`.
 

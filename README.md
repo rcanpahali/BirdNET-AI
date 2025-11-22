@@ -13,7 +13,7 @@ A web application for analyzing bird sounds using the BirdNET AI model. Upload a
 - **Frontend**: React + TypeScript (Create React App)
 - **Proxy API**: Express.js + TypeScript + SQLite (better-sqlite3)
 - **Analyzer Service**: FastAPI + birdnetlib + TensorFlow
-- **Tooling**: npm workspaces, Docker, docker-compose
+- **Tooling**: npm workspaces, Turborepo, Docker, docker-compose
 
 ## Quick Start
 
@@ -47,7 +47,7 @@ Minimum versions: Python 3.9+, Node.js 18+, and ffmpeg installed on your PATH.
 # Install all workspace dependencies
 npm install
 
-# Launch FastAPI, Express proxy, and React dev server together
+# Launch FastAPI, Express proxy, and React dev server with Turbo's TUI
 npm start
 
 # (Optional) run services individually

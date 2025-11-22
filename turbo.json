@@ -1,0 +1,11 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": ["package-lock.json"],
+  "tasks": {
+    "dev": {
+      "cache": false,
+      "persistent": true,
+      "outputs": []
+    }
+  }
+}

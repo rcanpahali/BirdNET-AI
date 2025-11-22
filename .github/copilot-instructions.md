@@ -23,7 +23,7 @@
 
 ## Running & Debugging
 
-- Easiest dev loop: `npm start` from repo root (spawns BirdNET backend, Express proxy, and React dev server via `npm-run-all`).
+- Easiest dev loop: `npm start` from repo root. Turborepo runs the FastAPI backend, Express proxy, and React dev server under a single TUI.
 - Manual dev loop: `cd server/birdnet-api && ./run.sh`, `cd server/express-api && npm run dev`, `cd birdnet-client && npm start` in separate terminals.
 - For Docker parity: `docker-compose up --build`; backend healthcheck waits up to 60 s for model download before the frontend starts.
 - API docs available at `http://localhost:8000/docs`; health probe at `/health` reports analyzer readiness—useful before hitting `/analyze`.

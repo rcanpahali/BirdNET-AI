@@ -1,0 +1,7 @@
+{
+  "name": "birdnet-api",
+  "private": true,
+  "scripts": {
+    "dev": "./run.sh"
+  }
+}
