@@ -43,13 +43,13 @@ services:
 
   birdnet-client:
     build:
-      context: ./birdnet-client
+      context: ./client
       dockerfile: Dockerfile
     container_name: birdnet-client
     ports:
       - "3000:3000"
     volumes:
-      - ./birdnet-client:/app
+      - ./client:/app
       - /app/node_modules
     environment:
       - REACT_APP_API_URL=http://localhost:8080
