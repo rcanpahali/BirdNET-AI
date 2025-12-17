@@ -17,10 +17,11 @@
 
 .noDetections {
   text-align: center;
-  color: #999;
+  color: #d32f2f;
   padding: 20px;
-  background: #f8f9fa;
+  background: #ffebee;
   border-radius: 8px;
+  font-weight: 500;
 }
 
 .detectionsList {

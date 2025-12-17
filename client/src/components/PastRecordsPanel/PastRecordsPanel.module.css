@@ -49,6 +49,23 @@
   background: #fafafa;
 }
 
+.item.noDetections {
+  opacity: 0.6;
+  background: #f5f5f5;
+}
+
+.item.noDetections .itemHeader {
+  background: #f5f5f5;
+}
+
+.item.noDetections .itemHeader:hover {
+  background: #eeeeee;
+}
+
+.item.noDetections .count {
+  color: #999;
+}
+
 .itemHeader {
   width: 100%;
   padding: 12px;

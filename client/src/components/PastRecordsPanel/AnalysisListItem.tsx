@@ -31,8 +31,10 @@ const AnalysisListItem: React.FC<AnalysisListItemProps> = ({
   onToggle,
   formatDate,
 }) => {
+  const hasNoDetections = analysis.detectionCount === 0;
+  
   return (
-    <li className={styles.item}>
+    <li className={`${styles.item} ${hasNoDetections ? styles.noDetections : ''}`}>
       <button className={styles.itemHeader} onClick={onToggle}>
         <div className={styles.itemInfo}>
           <div className={styles.filename}>{analysis.filename}</div>
