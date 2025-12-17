@@ -4,7 +4,7 @@ import axios, { AxiosError } from 'axios';
 import multer from 'multer';
 import FormData from 'form-data';
 import dotenv from 'dotenv';
-import { saveAnalysisResult } from './services/analysisService';
+import { saveAnalysisResult, getAllAnalyses } from './services/analysisService';
 import { AnalyzerResponse } from './types';
 
 dotenv.config();
@@ -119,6 +119,15 @@ app.post('/analyze', upload.single('file'), async (req: Request, res: Response) 
       error: formatAxiosError(error),
     });
     res.status(status).json(payload);
+  }
+});
+
+app.get('/analyses', (_req: Request, res: Response) => {
+  try {
+    const analyses = getAllAnalyses();
+    res.json(analyses);
+  } catch (error) {
+    res.status(500).json({ detail: 'Failed to fetch analyses', error: String(error) });
   }
 });
 

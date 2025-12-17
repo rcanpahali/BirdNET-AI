@@ -3,6 +3,7 @@ import axios from 'axios';
 import layoutStyles from './layout.module.css';
 import UploadForm, { UploadFormValues } from './components/UploadForm';
 import ResultsPanel from './components/ResultsPanel';
+import PastRecordsPanel from './components/PastRecordsPanel';
 import { AnalyzerResponse } from './types';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
@@ -28,6 +29,7 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<AnalyzerResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handleFileSelected = () => {
     setError(null);
@@ -59,6 +61,7 @@ const App: React.FC = () => {
         },
       });
       setResults(response.data);
+      setRefreshTrigger(prev => prev + 1);
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -68,7 +71,9 @@ const App: React.FC = () => {
 
   return (
     <div className={layoutStyles.app}>
-      <div className={layoutStyles.container}>
+      <PastRecordsPanel refreshTrigger={refreshTrigger} />
+      <div className={layoutStyles.contentWrapper}>
+        <div className={layoutStyles.container}>
         <header className={layoutStyles.header}>
           <h1 className={layoutStyles.title}>BirdNet Analyzer</h1>
           <p className={layoutStyles.subtitle}>Verein für Vogelschutz und Landschaftspflege Bad Vilbel e.V.</p>
@@ -83,6 +88,7 @@ const App: React.FC = () => {
         )}
 
         {results && <ResultsPanel results={results} />}
+        </div>
       </div>
     </div>
   );

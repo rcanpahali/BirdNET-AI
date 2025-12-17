@@ -60,3 +60,38 @@ export function saveAnalysisResult(payload: SaveAnalysisInput): number {
 
   return transaction(payload);
 }
+
+export function getAllAnalyses() {
+  const analyses = db
+    .prepare(
+      `SELECT id, filename, mimetype, file_size, lat, lon, min_conf, created_at
+       FROM analyses
+       ORDER BY created_at DESC
+       LIMIT 100`
+    )
+    .all();
+
+  return analyses.map((analysis: any) => {
+    const detections = db
+      .prepare(
+        `SELECT common_name, scientific_name, confidence, start_time, end_time
+         FROM detections
+         WHERE analysis_id = ?
+         ORDER BY confidence DESC`
+      )
+      .all(analysis.id);
+
+    return {
+      id: analysis.id,
+      filename: analysis.filename,
+      mimetype: analysis.mimetype,
+      fileSize: analysis.file_size,
+      lat: analysis.lat,
+      lon: analysis.lon,
+      minConf: analysis.min_conf,
+      createdAt: analysis.created_at,
+      detectionCount: detections.length,
+      detections,
+    };
+  });
+}
