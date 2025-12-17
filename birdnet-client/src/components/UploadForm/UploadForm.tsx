@@ -1,6 +1,7 @@
-import React, { ChangeEvent } from 'react';
+import React, { ChangeEvent, useState } from 'react';
 import { Formik, Form, FormikHelpers, FormikErrors } from 'formik';
 import styles from './UploadForm.module.css';
+import Recorder from './Recorder';
 
 export interface UploadFormValues {
   file: File | null;
@@ -47,18 +48,21 @@ const validate = (values: UploadFormValues): FormikErrors<UploadFormValues> => {
   return errors;
 };
 
-const UploadForm: React.FC<UploadFormProps> = ({ loading, onSubmit, onFileSelected }) => (
-  <Formik<UploadFormValues>
-    initialValues={initialValues}
-    validate={validate}
-    onSubmit={async (values, formikHelpers) => {
-      try {
-        await onSubmit(values, formikHelpers);
-      } finally {
-        formikHelpers.setSubmitting(false);
-      }
-    }}
-  >
+const UploadForm: React.FC<UploadFormProps> = ({ loading, onSubmit, onFileSelected }) => {
+  const [inputMode, setInputMode] = useState<'record' | 'upload'>('record');
+
+  return (
+    <Formik<UploadFormValues>
+      initialValues={initialValues}
+      validate={validate}
+      onSubmit={async (values, formikHelpers) => {
+        try {
+          await onSubmit(values, formikHelpers);
+        } finally {
+          formikHelpers.setSubmitting(false);
+        }
+      }}
+    >
     {({
       values,
       errors,
@@ -83,16 +87,51 @@ const UploadForm: React.FC<UploadFormProps> = ({ loading, onSubmit, onFileSelect
       return (
         <Form className={styles.form}>
           <div className={styles.formGroup}>
-            <label htmlFor="file" className={styles.label}>Audio File</label>
-            <input
-              type="file"
-              id="file"
-              accept="audio/*"
-              onChange={handleFileChange}
-              disabled={loading || isSubmitting}
-              className={styles.fileInput}
-            />
-            {values.file && <p className={styles.fileInfo}>Selected: {values.file.name}</p>}
+            <label className={styles.label}>Audio Source</label>
+            <div className={styles.inputModeToggle}>
+              <button
+                type="button"
+                onClick={() => setInputMode('record')}
+                className={inputMode === 'record' ? styles.toggleActive : styles.toggleInactive}
+                disabled={loading || isSubmitting}
+              >
+                🎤 Record Audio
+              </button>
+              <button
+                type="button"
+                onClick={() => setInputMode('upload')}
+                className={inputMode === 'upload' ? styles.toggleActive : styles.toggleInactive}
+                disabled={loading || isSubmitting}
+              >
+                📁 Upload File
+              </button>
+            </div>
+          </div>
+
+          <div className={styles.formGroup}>
+            {inputMode === 'record' ? (
+              <Recorder
+                onRecordingComplete={(file) => {
+                  void setFieldValue('file', file, true);
+                  setFieldTouched('file', true, false);
+                  onFileSelected?.();
+                }}
+                disabled={loading || isSubmitting}
+              />
+            ) : (
+              <>
+                <label htmlFor="file" className={styles.label}>Audio File</label>
+                <input
+                  type="file"
+                  id="file"
+                  accept="audio/*"
+                  onChange={handleFileChange}
+                  disabled={loading || isSubmitting}
+                  className={styles.fileInput}
+                />
+                {values.file && <p className={styles.fileInfo}>Selected: {values.file.name}</p>}
+              </>
+            )}
             {touched.file && errors.file && <p className={styles.errorText}>{errors.file}</p>}
           </div>
 
@@ -160,8 +199,9 @@ const UploadForm: React.FC<UploadFormProps> = ({ loading, onSubmit, onFileSelect
         </Form>
       );
     }}
-  </Formik>
-);
+    </Formik>
+  );
+};
 
 export default UploadForm;
 export type { UploadFormProps };

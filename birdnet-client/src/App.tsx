@@ -70,8 +70,8 @@ const App: React.FC = () => {
     <div className={layoutStyles.app}>
       <div className={layoutStyles.container}>
         <header className={layoutStyles.header}>
-          <h1 className={layoutStyles.title}>BirdNET Analyzer</h1>
-          <p className={layoutStyles.subtitle}>Upload an audio file to detect bird species</p>
+          <h1 className={layoutStyles.title}>BirdNet Analyzer</h1>
+          <p className={layoutStyles.subtitle}>Verein für Vogelschutz und Landschaftspflege Bad Vilbel e.V.</p>
         </header>
 
         <UploadForm loading={loading} onSubmit={handleSubmit} onFileSelected={handleFileSelected} />
