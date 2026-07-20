@@ -1,97 +1,50 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import layoutStyles from './layout.module.css';
-import UploadForm, { UploadFormValues } from './components/UploadForm';
-import ResultsPanel from './components/ResultsPanel';
-import PastRecordsPanel from './components/PastRecordsPanel';
-import { AnalyzerResponse } from './types';
+import { getErrorMessage } from './api/client';
+import { PastRecordsPanel } from './components/PastRecordsPanel/PastRecordsPanel';
+import { ResultsPanel } from './components/ResultsPanel';
+import { UploadForm } from './components/UploadForm/UploadForm';
+import type { UploadFormValues } from './components/UploadForm/UploadForm';
+import { useAnalyzeMutation } from './hooks/useAnalyzeMutation';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
-const FALLBACK_ERROR = 'An error occurred';
+function App() {
+  const mutation = useAnalyzeMutation();
 
-const getErrorMessage = (err: unknown): string => {
-  if (axios.isAxiosError(err)) {
-    const detail = (err.response?.data as { detail?: string } | undefined)?.detail;
-    if (typeof detail === 'string' && detail.trim().length > 0) {
-      return detail;
-    }
-    return err.message || FALLBACK_ERROR;
-  }
-
-  if (err instanceof Error && err.message) {
-    return err.message;
-  }
-
-  return FALLBACK_ERROR;
-};
-
-const App: React.FC = () => {
-  const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<AnalyzerResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
-
-  const handleFileSelected = () => {
-    setError(null);
-    setResults(null);
-  };
-
-  const handleSubmit = async (values: UploadFormValues) => {
-    if (!values.file) {
-      setError('Please select an audio file');
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    setResults(null);
+  const handleSubmit = (values: UploadFormValues) => {
+    if (!values.file) return;
 
     const formData = new FormData();
     formData.append('file', values.file);
     if (values.lat) formData.append('lat', values.lat);
     if (values.lon) formData.append('lon', values.lon);
 
-    const parsedMinConf = parseFloat(values.minConf);
+    const parsedMinConf = Number.parseFloat(values.minConf);
     formData.append('min_conf', String(Number.isFinite(parsedMinConf) ? parsedMinConf : 0.25));
 
-    try {
-      const response = await axios.post<AnalyzerResponse>(`${API_URL}/analyze`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      setResults(response.data);
-      setRefreshTrigger(prev => prev + 1);
-    } catch (err) {
-      setError(getErrorMessage(err));
-    } finally {
-      setLoading(false);
-    }
+    mutation.mutate(formData);
   };
 
   return (
-    <div className={layoutStyles.app}>
-      <PastRecordsPanel refreshTrigger={refreshTrigger} />
-      <div className={layoutStyles.contentWrapper}>
-        <div className={layoutStyles.container}>
-        <header className={layoutStyles.header}>
-          <h1 className={layoutStyles.title}>BirdNet Analyzer</h1>
-          <p className={layoutStyles.subtitle}>Verein für Vogelschutz und Landschaftspflege Bad Vilbel e.V.</p>
-        </header>
+    <div className="flex min-h-screen justify-center gap-0 bg-gradient-to-br from-[#667eea] to-[#764ba2] p-5">
+      <PastRecordsPanel />
+      <div className="mt-10 flex gap-0">
+        <div className="w-full max-w-[700px] rounded-2xl bg-white p-10 shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
+          <header className="mb-10 text-center">
+            <h1 className="mb-2.5 text-4xl text-gray-800">BirdNet Analyzer</h1>
+            <p className="text-lg text-gray-500">Verein für Vogelschutz und Landschaftspflege Bad Vilbel e.V.</p>
+          </header>
 
-        <UploadForm loading={loading} onSubmit={handleSubmit} onFileSelected={handleFileSelected} />
+          <UploadForm loading={mutation.isPending} onSubmit={handleSubmit} onFileSelected={() => mutation.reset()} />
 
-        {error && (
-          <div className={layoutStyles.errorMessage}>
-            <strong>Error:</strong> {error}
-          </div>
-        )}
+          {mutation.isError && (
+            <div className="mb-5 rounded-lg border-2 border-red-200 bg-red-50 p-4 text-red-700">
+              <strong>Error:</strong> {getErrorMessage(mutation.error)}
+            </div>
+          )}
 
-        {results && <ResultsPanel results={results} />}
+          {mutation.isSuccess && <ResultsPanel results={mutation.data} />}
         </div>
       </div>
     </div>
   );
-};
+}
 
 export default App;

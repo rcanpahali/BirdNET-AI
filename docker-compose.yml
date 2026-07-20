@@ -4,12 +4,8 @@ services:
       context: ./server/birdnet-api
       dockerfile: Dockerfile
     container_name: birdnet-api
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./server/birdnet-api:/app
-      # Persist BirdNET models between container restarts (speeds up subsequent starts)
-      - birdnet-models:/root/.local/share/birdnetlib
+    # Internal-only inference service -- not published to the host. Express
+    # is the only caller, reached over the compose network.
     environment:
       - PYTHONUNBUFFERED=1
     healthcheck:
@@ -17,49 +13,39 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 60s  # Allow 60s for model download on first run
+      start_period: 10s
     restart: unless-stopped
 
   express-api:
     build:
-      context: ./server/express-api
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: server/express-api/Dockerfile
     container_name: express-api
     ports:
       - "8080:8080"
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - PORT=8080
       - BIRDNET_API_URL=http://birdnet-api:8000
+      - CORS_ORIGINS=http://localhost:3000
+      - DATABASE_PATH=/app/server/express-api/data/birdnet.db
     volumes:
-      - ./server/express-api:/app
-      - /app/node_modules
-      - ./server/express-api/data:/app/data
-    command: npm run dev
+      - ./server/express-api/data:/app/server/express-api/data
     depends_on:
       birdnet-api:
         condition: service_healthy
     restart: unless-stopped
 
-  birdnet-client:
+  client:
     build:
-      context: ./client
-      dockerfile: Dockerfile
-    container_name: birdnet-client
+      context: .
+      dockerfile: client/Dockerfile
+      args:
+        VITE_API_URL: http://localhost:8080
+    container_name: client
     ports:
-      - "3000:3000"
-    volumes:
-      - ./client:/app
-      - /app/node_modules
-    environment:
-      - REACT_APP_API_URL=http://localhost:8080
-      - CHOKIDAR_USEPOLLING=true
+      - "3000:80"
     depends_on:
       express-api:
         condition: service_started
     restart: unless-stopped
-
-volumes:
-  birdnet-models:
-    driver: local
-

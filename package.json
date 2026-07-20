@@ -5,13 +5,19 @@
   "workspaces": [
     "client",
     "server/express-api",
-    "server/birdnet-api"
+    "server/birdnet-api",
+    "packages/types"
   ],
   "scripts": {
     "start": "turbo dev --ui tui",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test",
     "turbo": "turbo"
   },
   "devDependencies": {
+    "drizzle-orm": "^0.45.2",
     "turbo": "^2.2.3"
   }
 }

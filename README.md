@@ -1,6 +1,6 @@
-# BirdNET-AI Analyzer
+# BirdNET Analyzer
 
-A web application for analyzing bird sounds using the BirdNET AI model. Upload audio files to detect bird species with confidence scores and time ranges.
+A web application for analyzing bird sounds using the BirdNET AI model. Upload or record audio to detect bird species with confidence scores and time ranges, and browse past analyses.
 
 ## References
 
@@ -8,100 +8,76 @@ A web application for analyzing bird sounds using the BirdNET AI model. Upload a
 - [birdnetlib](https://pypi.org/project/birdnetlib/) – Python interface used to drive the analyzer.
 - [TensorFlow](https://www.tensorflow.org/) – machine learning runtime leveraged by birdnetlib/BirdNET.
 
+## Architecture
+
+```
+Browser  ──▶  Express (TS)  ──▶  FastAPI (Python, internal-only)
+             owns:                owns:
+             - API contract        - BirdNET inference, nothing else
+             - persistence (SQLite via Drizzle)
+             - validation
+```
+
+Express is the only service with a public API contract. FastAPI is a stateless,
+internal-only inference service reached exclusively by Express — it's never
+exposed to the browser or a public port.
+
 ## Tech Stack
 
-- **Frontend**: React + TypeScript (Create React App)
-- **Proxy API**: Express.js + TypeScript + SQLite (better-sqlite3)
-- **Analyzer Service**: FastAPI + birdnetlib + TensorFlow
+- **Frontend**: React 19 + TypeScript + Vite + Tailwind CSS + TanStack Query
+- **Backend**: Express + TypeScript + Drizzle ORM (SQLite)
+- **Analyzer**: FastAPI + birdnetlib + TensorFlow (internal-only)
+- **Shared types**: `packages/types`, a workspace package used by both `client` and `server/express-api`
 - **Tooling**: npm workspaces, Turborepo, Docker, docker-compose
 
 ## Quick Start
 
+### Docker (full parity)
+
 ```bash
 docker-compose up --build
 ```
-
-**First startup:** 2-5 minutes (downloads ~500MB models)  
-**Subsequent starts:** 10-30 seconds (models cached)
-
-### Access the Application
 
 - **Frontend**: http://localhost:3000
-- **Express Proxy API**: http://localhost:8080
-- **BirdNET Analyzer API**: http://localhost:8000
-- **API Docs (BirdNET)**: http://localhost:8000/docs
+- **Express API**: http://localhost:8080
+- The FastAPI analyzer is internal-only and not published to the host.
 
-## Installation Details
+### Local dev (fast iteration, hot reload)
 
-### Docker
-
-1. Ensure Docker Desktop (or engine) and docker-compose are available.
-2. From the repo root run `docker-compose up --build`.
-3. Visit the frontend at http://localhost:3000 once the containers report ready.
-
-### Local
-
-Minimum versions: Python 3.9+, Node.js 18+, and ffmpeg installed on your PATH.
+Prerequisites: Node.js 22+, Python 3.13, `ffmpeg` on PATH.
 
 ```bash
-# Install all workspace dependencies
-npm install
-
-# Launch FastAPI, Express proxy, and React dev server with Turbo's TUI
-npm start
-
-# (Optional) run services individually
-server/birdnet-api/run.sh
-npm run dev --workspace server/express-api
-npm start --workspace birdnet-client
+npm install        # install all workspace deps from repo root
+npm start          # launches all three services under Turbo's TUI
 ```
 
-## Performance & Model Caching
-
-### Model Loading
-
-- **First run**: Downloads ~500MB models (2-5 minutes)
-- **Subsequent runs**:
-  - Docker: 10-30 seconds (cached in volume)
-  - Local: Instant (cached in `~/.local/share/birdnetlib`)
-
-### Cache Management
-
-**Docker:**
+Or run services individually:
 
 ```bash
-docker-compose down
-docker volume rm birdnet-models  # Clear cache
-docker-compose up --build
-```
-
-**Local:**
-
-```bash
-rm -rf ~/.local/share/birdnetlib  # Clear cache
-```
-
-**Type checking (optional):**
-
-```bash
-cd birdnet-client
-npx tsc --noEmit
+server/birdnet-api/run.sh                   # FastAPI analyzer — :8000
+npm run dev --workspace server/express-api  # Express API — :8080
+npm run dev --workspace client              # React dev server — :3000
 ```
 
 ## Data & Persistence
 
-- The Express proxy stores every successful analysis and its detections in a SQLite database (default path `server/express-api/data/birdnet.db`).
-- Configure the path via the `DATABASE_PATH` environment variable in `server/express-api/.env` or Docker Compose; relative paths resolve from the project root.
-- Schema migrations live in `server/express-api/schema.sql`.
-- The `data/` directory is ignored by Git. Docker Compose bind-mounts `./server/express-api/data` into the container so your history survives rebuilds while remaining local.
+- Express stores every analysis and its detections in SQLite via Drizzle ORM (default path `server/express-api/data/birdnet.db`).
+- Configure the path via `DATABASE_PATH` in `server/express-api/.env`.
+- Migrations live in `server/express-api/drizzle/`. Run `npm run db:generate --workspace server/express-api` after changing `src/db/schema.ts`.
+- `data/` is git-ignored; docker-compose bind-mounts it so history survives container rebuilds.
 
-## Architecture Overview
+## Testing
 
-- **Backend**: FastAPI REST API with BirdNET analyzer (initialized at startup)
-- **Proxy**: Express.js layer that forwards requests to the BirdNET analyzer, persists results in SQLite, and centralizes future integrations
-- **Frontend**: React SPA that communicates with the proxy via HTTP
-- **Model Caching**: Models persist in Docker volumes or local directories
-- **Persistence**: SQLite database (`server/express-api/data/birdnet.db` by default, bind-mounted into the container) records analyses and detections
+```bash
+npm run typecheck   # all TS workspaces
+npm run lint         # all TS workspaces
+npm run test          # all TS workspaces (Vitest)
+npm run build          # all TS workspaces
+
+cd server/birdnet-api && ./venv/bin/pytest   # Python service
+```
+
+CI (`.github/workflows/ci.yml`) runs all of the above on every push/PR.
 
 ## License
 

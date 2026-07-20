@@ -1,164 +1,69 @@
-import React, { useState, useRef, useEffect } from 'react';
-import styles from './UploadForm.module.css';
+import { useEffect, useRef, useState } from 'react';
+import { MediaRecorder as WavMediaRecorder, register } from 'extendable-media-recorder';
+import type { IMediaRecorder } from 'extendable-media-recorder';
+import { connect } from 'extendable-media-recorder-wav-encoder';
 
 interface RecorderProps {
   onRecordingComplete: (file: File) => void;
   disabled?: boolean;
 }
 
-const Recorder: React.FC<RecorderProps> = ({ onRecordingComplete, disabled = false }) => {
+let wavEncoderRegistration: Promise<void> | null = null;
+
+function ensureWavEncoderRegistered(): Promise<void> {
+  wavEncoderRegistration ??= connect().then((port) => register(port));
+  return wavEncoderRegistration;
+}
+
+export function Recorder({ onRecordingComplete, disabled = false }: RecorderProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
-  const [error, setError] = useState<string>('');
-  
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const [error, setError] = useState('');
+
+  const mediaRecorderRef = useRef<IMediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
     return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
+      if (timerRef.current) clearInterval(timerRef.current);
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
         mediaRecorderRef.current.stop();
       }
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-      }
+      streamRef.current?.getTracks().forEach((track) => track.stop());
     };
   }, []);
-
-  const convertToWav = async (blob: Blob): Promise<Blob> => {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    audioContextRef.current = audioContext;
-    
-    const arrayBuffer = await blob.arrayBuffer();
-    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-    
-    // Convert to WAV
-    const wavBlob = audioBufferToWav(audioBuffer);
-    return wavBlob;
-  };
-
-  const audioBufferToWav = (buffer: AudioBuffer): Blob => {
-    const numberOfChannels = buffer.numberOfChannels;
-    const length = buffer.length * numberOfChannels * 2;
-    const arrayBuffer = new ArrayBuffer(44 + length);
-    const view = new DataView(arrayBuffer);
-    const channels: Float32Array[] = [];
-    let offset = 0;
-    let pos = 0;
-
-    // Write WAV header
-    const setUint16 = (data: number) => {
-      view.setUint16(pos, data, true);
-      pos += 2;
-    };
-    const setUint32 = (data: number) => {
-      view.setUint32(pos, data, true);
-      pos += 4;
-    };
-
-    // RIFF identifier
-    setUint32(0x46464952);
-    // file length minus RIFF identifier length and file description length
-    setUint32(36 + length);
-    // RIFF type
-    setUint32(0x45564157);
-    // format chunk identifier
-    setUint32(0x20746d66);
-    // format chunk length
-    setUint32(16);
-    // sample format (raw)
-    setUint16(1);
-    // channel count
-    setUint16(numberOfChannels);
-    // sample rate
-    setUint32(buffer.sampleRate);
-    // byte rate (sample rate * block align)
-    setUint32(buffer.sampleRate * numberOfChannels * 2);
-    // block align (channel count * bytes per sample)
-    setUint16(numberOfChannels * 2);
-    // bits per sample
-    setUint16(16);
-    // data chunk identifier
-    setUint32(0x61746164);
-    // data chunk length
-    setUint32(length);
-
-    // Write interleaved data
-    for (let i = 0; i < numberOfChannels; i++) {
-      channels.push(buffer.getChannelData(i));
-    }
-
-    while (pos < arrayBuffer.byteLength) {
-      for (let i = 0; i < numberOfChannels; i++) {
-        let sample = Math.max(-1, Math.min(1, channels[i][offset]));
-        sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
-        view.setInt16(pos, sample, true);
-        pos += 2;
-      }
-      offset++;
-    }
-
-    return new Blob([arrayBuffer], { type: 'audio/wav' });
-  };
 
   const startRecording = async () => {
     try {
       setError('');
+      await ensureWavEncoderRegistered();
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
-      
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4',
-      });
-      
+
+      const mediaRecorder = new WavMediaRecorder(stream, { mimeType: 'audio/wav' });
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
 
       mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          chunksRef.current.push(event.data);
-        }
+        if (event.data.size > 0) chunksRef.current.push(event.data);
       };
 
-      mediaRecorder.onstop = async () => {
-        const blob = new Blob(chunksRef.current, { type: mediaRecorder.mimeType });
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: 'audio/wav' });
         setAudioBlob(blob);
-        
-        try {
-          // Convert to WAV format
-          const wavBlob = await convertToWav(blob);
-          const file = new File([wavBlob], `recording-${Date.now()}.wav`, {
-            type: 'audio/wav',
-          });
-          
-          onRecordingComplete(file);
-        } catch (err) {
-          console.error('Error converting audio:', err);
-          setError('Failed to process recording. Please try again.');
-        }
-        
-        // Stop all tracks
-        if (streamRef.current) {
-          streamRef.current.getTracks().forEach(track => track.stop());
-          streamRef.current = null;
-        }
+        onRecordingComplete(new File([blob], `recording-${Date.now()}.wav`, { type: 'audio/wav' }));
+        streamRef.current?.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
       };
 
       mediaRecorder.start();
       setIsRecording(true);
       setRecordingTime(0);
-
-      // Start timer
-      timerRef.current = setInterval(() => {
-        setRecordingTime(prev => prev + 1);
-      }, 1000);
+      timerRef.current = setInterval(() => setRecordingTime((prev) => prev + 1), 1000);
     } catch (err) {
       console.error('Error accessing microphone:', err);
       setError('Unable to access microphone. Please grant permission.');
@@ -169,7 +74,6 @@ const Recorder: React.FC<RecorderProps> = ({ onRecordingComplete, disabled = fal
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
-      
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
@@ -190,49 +94,53 @@ const Recorder: React.FC<RecorderProps> = ({ onRecordingComplete, disabled = fal
   };
 
   return (
-    <div className={styles.recorderContainer}>
-      <div className={styles.recorderControls}>
+    <div className="w-full">
+      <div className="mb-3 flex flex-col items-center gap-4">
         <button
           type="button"
           onClick={isRecording ? stopRecording : startRecording}
           disabled={disabled}
-          className={`${styles.recordButtonCircle} ${isRecording ? styles.recording : ''}`}
           title={isRecording ? 'Stop Recording' : 'Start Recording'}
+          className={`flex h-40 w-40 items-center justify-center rounded-full text-white shadow-lg transition disabled:cursor-not-allowed disabled:opacity-60 ${
+            isRecording
+              ? 'animate-pulse bg-gradient-to-br from-red-600 to-red-700'
+              : 'bg-gradient-to-br from-[#667eea] to-[#764ba2] hover:scale-105'
+          }`}
         >
           <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
           </svg>
         </button>
         {isRecording && (
-          <div className={styles.recordingIndicator}>
-            <span className={styles.recordingTime}>{formatTime(recordingTime)}</span>
+          <div className="flex items-center justify-center gap-2">
+            <span className="font-mono text-2xl font-bold text-red-600">{formatTime(recordingTime)}</span>
           </div>
         )}
       </div>
-      
-      {error && <p className={styles.errorText}>{error}</p>}
-      
+
+      {error && <p className="text-sm text-red-600">{error}</p>}
+
       {audioBlob && !isRecording && (
-        <div className={styles.audioPreview}>
-          <div className={styles.audioPreviewHeader}>
-            <p className={styles.fileInfo}>Recording ready ({formatTime(recordingTime)})</p>
+        <div className="mt-3">
+          <div className="mb-3 flex items-center justify-center gap-3">
+            <p className="text-sm font-medium text-green-600">Recording ready ({formatTime(recordingTime)})</p>
             <button
               type="button"
               onClick={clearRecording}
-              className={styles.clearButton}
               title="Delete recording and start over"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-600 text-white transition hover:scale-110"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
               </svg>
             </button>
           </div>
-          <audio controls src={URL.createObjectURL(audioBlob)} className={styles.audioPlayer} />
+          <audio controls src={URL.createObjectURL(audioBlob)} className="w-full" />
         </div>
       )}
     </div>
   );
-};
+}
 
 export default Recorder;

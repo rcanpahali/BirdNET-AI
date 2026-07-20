@@ -1,35 +1,23 @@
-"""
-Configuration settings for the BirdNET Analyzer API.
-"""
+"""Runtime configuration for the BirdNET inference service."""
 import os
-from typing import List
 
-# API Configuration
-API_TITLE = "BirdNET Analyzer API"
-API_VERSION = "1.0.0"
-API_DESCRIPTION = "REST API for analyzing bird sounds using BirdNET"
+API_TITLE = "BirdNET Inference Service"
+API_VERSION = "2.0.0"
+API_DESCRIPTION = (
+    "Internal-only service that runs BirdNET inference on an uploaded audio file. "
+    "Not exposed to the browser -- called exclusively by the Express API."
+)
 
-# Server Configuration
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "8000"))
 DEBUG = os.getenv("DEBUG", "false").lower() == "true"
 
-# CORS Configuration
-CORS_ORIGINS: List[str] = [
-    "http://localhost:3000",
-    "http://localhost:5173",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:5173",
-]
+MAX_FILE_SIZE = int(os.getenv("MAX_FILE_SIZE", str(100 * 1024 * 1024)))  # 100MB default
+ALLOWED_EXTENSIONS = {".mp3", ".wav", ".flac", ".m4a", ".ogg", ".wma", ".aac"}
 
-# File Upload Configuration
-MAX_FILE_SIZE = int(os.getenv("MAX_FILE_SIZE", "104857600"))  # 100MB default
-ALLOWED_EXTENSIONS = ['.mp3', '.wav', '.flac', '.m4a', '.ogg', '.wma', '.aac']
-
-# Analysis Configuration
 DEFAULT_MIN_CONFIDENCE = float(os.getenv("DEFAULT_MIN_CONFIDENCE", "0.25"))
-MODEL_CACHE_DIR = os.getenv("MODEL_CACHE_DIR", os.path.expanduser("~/.local/share/birdnetlib"))
 
-# Logging Configuration
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 
+# Read/write granularity while streaming an upload to disk.
+UPLOAD_CHUNK_SIZE = 1024 * 1024  # 1MB

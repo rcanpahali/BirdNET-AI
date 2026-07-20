@@ -1,86 +1,34 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import styles from './PastRecordsPanel.module.css';
-import AnalysisListItem from './AnalysisListItem';
+import { useState } from 'react';
+import { useAnalyses } from '../../hooks/useAnalyses';
+import { AnalysisListItem } from './AnalysisListItem';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
-
-interface Detection {
-  common_name: string;
-  scientific_name: string;
-  confidence: number;
-  start_time: number;
-  end_time: number;
-}
-
-interface Analysis {
-  id: number;
-  filename: string;
-  createdAt: string;
-  detectionCount: number;
-  detections: Detection[];
-}
-
-interface PastRecordsPanelProps {
-  refreshTrigger?: number;
-}
-
-const PastRecordsPanel: React.FC<PastRecordsPanelProps> = ({ refreshTrigger }) => {
-  const [analyses, setAnalyses] = useState<Analysis[]>([]);
-  const [loading, setLoading] = useState(false);
+export function PastRecordsPanel() {
+  const { data: analyses, isLoading } = useAnalyses();
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
-  const fetchAnalyses = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get<Analysis[]>(`${API_URL}/analyses`);
-      setAnalyses(response.data);
-    } catch (error) {
-      console.error('Failed to fetch analyses:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchAnalyses();
-  }, []);
-
-  useEffect(() => {
-    if (refreshTrigger && refreshTrigger > 0) {
-      fetchAnalyses();
-    }
-  }, [refreshTrigger]);
-
   const toggleExpand = (id: number) => {
-    setExpandedId(expandedId === id ? null : id);
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString();
+    setExpandedId((current) => (current === id ? null : id));
   };
 
   return (
-    <div className={styles.panel}>
-      <div className={styles.content}>
-        <h2 className={styles.title}>Analysis History</h2>
-        
-        {loading && <p className={styles.loading}>Loading...</p>}
-        
-        {!loading && analyses.length === 0 && (
-          <p className={styles.empty}>No analyses yet</p>
+    <div className="fixed top-0 right-0 z-50 h-screen w-[400px] overflow-hidden bg-white shadow-[-2px_0_8px_rgba(0,0,0,0.1)]">
+      <div className="h-full overflow-y-auto p-5">
+        <h2 className="mb-5 border-b-2 border-[#4CAF50] pb-2.5 text-xl text-gray-800">Analysis History</h2>
+
+        {isLoading && <p className="p-5 text-center italic text-gray-500">Loading...</p>}
+
+        {!isLoading && (analyses?.length ?? 0) === 0 && (
+          <p className="p-5 text-center italic text-gray-500">No analyses yet</p>
         )}
-        
-        {!loading && analyses.length > 0 && (
-          <ul className={styles.list}>
+
+        {!isLoading && analyses && analyses.length > 0 && (
+          <ul className="list-none">
             {analyses.map((analysis) => (
               <AnalysisListItem
                 key={analysis.id}
                 analysis={analysis}
                 isExpanded={expandedId === analysis.id}
                 onToggle={() => toggleExpand(analysis.id)}
-                formatDate={formatDate}
               />
             ))}
           </ul>
@@ -88,6 +36,4 @@ const PastRecordsPanel: React.FC<PastRecordsPanelProps> = ({ refreshTrigger }) =
       </div>
     </div>
   );
-};
-
-export default PastRecordsPanel;
+}
