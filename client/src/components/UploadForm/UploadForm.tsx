@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
+import { requestCurrentPosition } from '../../lib/geolocation';
+import { MicIcon, PinIcon, UploadIcon } from '../icons';
 import { Recorder } from './Recorder';
 
 export interface UploadFormValues {
@@ -15,7 +17,8 @@ interface UploadFormProps {
   onFileSelected?: () => void;
 }
 
-type FormErrors = Partial<Record<keyof UploadFormValues, string>>;
+type FormErrors = Partial<Record<'file' | 'lat' | 'lon', string>>;
+type LocationStatus = 'idle' | 'detecting' | 'detected' | 'unavailable';
 
 const initialValues: UploadFormValues = { file: null, lat: '', lon: '', minConf: '0.25' };
 
@@ -31,47 +34,62 @@ function validate(values: UploadFormValues): FormErrors {
   if (values.lon !== '' && Number.isNaN(Number(values.lon))) {
     errors.lon = 'Longitude must be a number';
   }
-  if (values.minConf !== '') {
-    const parsed = Number.parseFloat(values.minConf);
-    if (!Number.isFinite(parsed) || parsed < 0 || parsed > 1) {
-      errors.minConf = 'Enter a value between 0 and 1';
-    }
-  }
 
   return errors;
 }
 
-const toggleButtonClasses = (active: boolean) =>
-  `flex-1 rounded-lg border-2 border-[#667eea] px-4 py-2.5 font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
-    active
-      ? 'bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white'
-      : 'bg-white text-[#667eea] hover:bg-gray-50'
+const segmentButtonClasses = (active: boolean) =>
+  `flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+    active ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
   }`;
 
-const textInputClasses =
-  'w-full rounded-lg border-2 border-gray-200 p-2.5 text-sm focus:border-[#667eea] focus:outline-none disabled:cursor-not-allowed disabled:opacity-60';
+const fieldClasses =
+  'w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50';
 
 export function UploadForm({ loading, onSubmit, onFileSelected }: UploadFormProps) {
   const [values, setValues] = useState<UploadFormValues>(initialValues);
-  const [touched, setTouched] = useState<Partial<Record<keyof UploadFormValues, boolean>>>({});
+  const [touched, setTouched] = useState<Partial<Record<'file' | 'lat' | 'lon', boolean>>>({});
   const [inputMode, setInputMode] = useState<'record' | 'upload'>('record');
+  const [locationStatus, setLocationStatus] = useState<LocationStatus>('idle');
+  const [showLocationFields, setShowLocationFields] = useState(false);
 
   const errors = validate(values);
-  const hasErrors = Boolean(errors.file || errors.lat || errors.lon || errors.minConf);
+  const hasErrors = Boolean(errors.file || errors.lat || errors.lon);
+  const hasLocation = values.lat !== '' && values.lon !== '';
 
   const setField = <K extends keyof UploadFormValues>(field: K, value: UploadFormValues[K]) => {
     setValues((prev) => ({ ...prev, [field]: value }));
   };
 
-  const markTouched = (field: keyof UploadFormValues) => {
+  const markTouched = (field: 'file' | 'lat' | 'lon') => {
     setTouched((prev) => ({ ...prev, [field]: true }));
+  };
+
+  // Triggered when the user starts a recording or picks a file to upload.
+  // Never blocks or errors -- if location isn't available/allowed, the
+  // lat/lon fields are simply left for manual entry (or empty).
+  const detectLocation = async () => {
+    if (values.lat !== '' || values.lon !== '') return; // manual entry always wins
+
+    setLocationStatus('detecting');
+    const position = await requestCurrentPosition();
+    if (position) {
+      setField('lat', String(position.lat));
+      setField('lon', String(position.lon));
+      setLocationStatus('detected');
+    } else {
+      setLocationStatus('unavailable');
+    }
   };
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.currentTarget.files?.[0] ?? null;
     setField('file', selectedFile);
     markTouched('file');
-    if (selectedFile) onFileSelected?.();
+    if (selectedFile) {
+      onFileSelected?.();
+      void detectLocation();
+    }
   };
 
   const handleRecordingComplete = (file: File) => {
@@ -80,122 +98,181 @@ export function UploadForm({ loading, onSubmit, onFileSelected }: UploadFormProp
     onFileSelected?.();
   };
 
+  const handleLatChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setField('lat', event.target.value);
+    setLocationStatus('idle');
+  };
+
+  const handleLonChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setField('lon', event.target.value);
+    setLocationStatus('idle');
+  };
+
+  const clearLocation = () => {
+    setField('lat', '');
+    setField('lon', '');
+    setLocationStatus('idle');
+    setShowLocationFields(false);
+  };
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setTouched({ file: true, lat: true, lon: true, minConf: true });
+    setTouched({ file: true, lat: true, lon: true });
     if (hasErrors) return;
     onSubmit(values);
   };
 
+  const confidencePercent = Math.round(Number(values.minConf) * 100);
+
+  const locationSummary =
+    locationStatus === 'detecting'
+      ? 'Detecting your location…'
+      : hasLocation
+        ? `${Number(values.lat).toFixed(4)}, ${Number(values.lon).toFixed(4)}`
+        : 'No location set';
+
   return (
-    <form onSubmit={handleSubmit} className="mx-auto mb-8 w-full max-w-[520px]">
-      <div className="mb-5">
-        <label className="mb-2 block font-semibold text-gray-800">Audio Source</label>
-        <div className="mb-3 flex gap-2">
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div>
+        <span className="mb-2 block text-sm font-medium text-slate-700">Audio source</span>
+        <div className="flex gap-1 rounded-lg bg-slate-100 p-1">
           <button
             type="button"
             onClick={() => setInputMode('record')}
             disabled={loading}
-            className={toggleButtonClasses(inputMode === 'record')}
+            className={segmentButtonClasses(inputMode === 'record')}
           >
-            🎤 Record Audio
+            <MicIcon /> Record
           </button>
           <button
             type="button"
             onClick={() => setInputMode('upload')}
             disabled={loading}
-            className={toggleButtonClasses(inputMode === 'upload')}
+            className={segmentButtonClasses(inputMode === 'upload')}
           >
-            📁 Upload File
+            <UploadIcon /> Upload
           </button>
         </div>
       </div>
 
-      <div className="mb-5">
+      <div>
         {inputMode === 'record' ? (
-          <Recorder onRecordingComplete={handleRecordingComplete} disabled={loading} />
+          <Recorder
+            onRecordingComplete={handleRecordingComplete}
+            onRecordingStart={detectLocation}
+            disabled={loading}
+          />
         ) : (
           <>
-            <label htmlFor="file" className="mb-2 block font-semibold text-gray-800">
-              Audio File
+            <span className="mb-2 block text-sm font-medium text-slate-700">Audio file</span>
+            <label className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500 transition has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50 has-[:not(:disabled)]:hover:border-emerald-400 has-[:not(:disabled)]:hover:bg-emerald-50/50">
+              <input
+                type="file"
+                aria-label="Audio file"
+                accept="audio/*"
+                onChange={handleFileChange}
+                disabled={loading}
+                className="sr-only"
+              />
+              {values.file ? (
+                <span className="font-medium text-emerald-700">{values.file.name}</span>
+              ) : (
+                <span>Click to choose an audio file</span>
+              )}
             </label>
-            <input
-              type="file"
-              id="file"
-              accept="audio/*"
-              onChange={handleFileChange}
-              disabled={loading}
-              className="w-full cursor-pointer rounded-lg border-2 border-dashed border-[#667eea] bg-gray-50 p-2.5 text-sm hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
-            />
-            {values.file && <p className="mt-2 text-sm font-medium text-green-600">Selected: {values.file.name}</p>}
           </>
         )}
         {touched.file && errors.file && <p className="mt-2 text-sm text-red-600">{errors.file}</p>}
       </div>
 
-      <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div>
-          <label htmlFor="lat" className="mb-2 block font-semibold text-gray-800">
-            Latitude (optional)
-          </label>
-          <input
-            type="number"
-            id="lat"
-            step="any"
-            value={values.lat}
-            onChange={(event) => setField('lat', event.target.value)}
-            onBlur={() => markTouched('lat')}
-            placeholder="e.g., 35.4244"
-            disabled={loading}
-            className={textInputClasses}
-          />
-          {touched.lat && errors.lat && <p className="mt-2 text-sm text-red-600">{errors.lat}</p>}
+      <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+        <div className="flex items-center justify-between gap-3">
+          <span className="flex min-w-0 items-center gap-2 text-sm text-slate-600">
+            <PinIcon className="h-4 w-4 shrink-0 text-slate-400" />
+            <span className="truncate">{locationSummary}</span>
+          </span>
+          <div className="flex shrink-0 gap-3 text-xs font-medium">
+            <button
+              type="button"
+              onClick={() => setShowLocationFields((prev) => !prev)}
+              className="text-emerald-700 hover:text-emerald-800"
+            >
+              {showLocationFields ? 'Hide' : hasLocation ? 'Edit' : 'Set manually'}
+            </button>
+            {hasLocation && (
+              <button type="button" onClick={clearLocation} className="text-slate-400 hover:text-red-600">
+                Clear
+              </button>
+            )}
+          </div>
         </div>
 
-        <div>
-          <label htmlFor="lon" className="mb-2 block font-semibold text-gray-800">
-            Longitude (optional)
-          </label>
-          <input
-            type="number"
-            id="lon"
-            step="any"
-            value={values.lon}
-            onChange={(event) => setField('lon', event.target.value)}
-            onBlur={() => markTouched('lon')}
-            placeholder="e.g., -120.7463"
-            disabled={loading}
-            className={textInputClasses}
-          />
-          {touched.lon && errors.lon && <p className="mt-2 text-sm text-red-600">{errors.lon}</p>}
-        </div>
+        {showLocationFields && (
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <div>
+              <label htmlFor="lat" className="sr-only">
+                Latitude
+              </label>
+              <input
+                type="number"
+                id="lat"
+                step="any"
+                value={values.lat}
+                onChange={handleLatChange}
+                onBlur={() => markTouched('lat')}
+                placeholder="Latitude"
+                disabled={loading}
+                className={fieldClasses}
+              />
+              {touched.lat && errors.lat && <p className="mt-1 text-xs text-red-600">{errors.lat}</p>}
+            </div>
+            <div>
+              <label htmlFor="lon" className="sr-only">
+                Longitude
+              </label>
+              <input
+                type="number"
+                id="lon"
+                step="any"
+                value={values.lon}
+                onChange={handleLonChange}
+                onBlur={() => markTouched('lon')}
+                placeholder="Longitude"
+                disabled={loading}
+                className={fieldClasses}
+              />
+              {touched.lon && errors.lon && <p className="mt-1 text-xs text-red-600">{errors.lon}</p>}
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="mb-5">
-        <label htmlFor="minConf" className="mb-2 block font-semibold text-gray-800">
-          Minimum Confidence
-        </label>
+      <div>
+        <div className="mb-2 flex items-center justify-between">
+          <label htmlFor="minConf" className="text-sm font-medium text-slate-700">
+            Minimum confidence
+          </label>
+          <span className="text-sm font-medium text-slate-500">{confidencePercent}%</span>
+        </div>
         <input
-          type="number"
+          type="range"
           id="minConf"
           min="0"
           max="1"
           step="0.05"
           value={values.minConf}
           onChange={(event) => setField('minConf', event.target.value)}
-          onBlur={() => markTouched('minConf')}
           disabled={loading}
-          className={textInputClasses}
+          className="w-full accent-emerald-600 disabled:cursor-not-allowed disabled:opacity-50"
         />
-        {touched.minConf && errors.minConf && <p className="mt-2 text-sm text-red-600">{errors.minConf}</p>}
       </div>
 
       <button
         type="submit"
         disabled={loading || hasErrors}
-        className="w-full rounded-lg bg-gradient-to-br from-[#667eea] to-[#764ba2] p-3 font-semibold text-white transition hover:enabled:-translate-y-0.5 hover:enabled:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
+        className="w-full rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white transition hover:enabled:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {loading ? 'Analyzing...' : 'Analyze Audio'}
+        {loading ? 'Analyzing…' : 'Analyze audio'}
       </button>
     </form>
   );

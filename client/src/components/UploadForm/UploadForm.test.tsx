@@ -1,9 +1,18 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import * as geolocation from '../../lib/geolocation';
 import { UploadForm } from './UploadForm';
 
+vi.mock('../../lib/geolocation', () => ({
+  requestCurrentPosition: vi.fn(),
+}));
+
 describe('UploadForm', () => {
+  beforeEach(() => {
+    vi.mocked(geolocation.requestCurrentPosition).mockReset().mockResolvedValue(null);
+  });
+
   it('disables submit until a file is selected, then calls onSubmit with the form values', async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
@@ -12,13 +21,13 @@ describe('UploadForm', () => {
 
     expect(screen.getByRole('button', { name: /analyze audio/i })).toBeDisabled();
 
-    await user.click(screen.getByRole('button', { name: /upload file/i }));
+    await user.click(screen.getByRole('button', { name: /^upload$/i }));
 
     const file = new File(['fake audio content'], 'clip.wav', { type: 'audio/wav' });
     const fileInput = screen.getByLabelText(/audio file/i);
     await user.upload(fileInput, file);
 
-    expect(screen.getByText('Selected: clip.wav')).toBeInTheDocument();
+    expect(screen.getByText('clip.wav')).toBeInTheDocument();
 
     const submitButton = screen.getByRole('button', { name: /analyze audio/i });
     expect(submitButton).toBeEnabled();
@@ -30,24 +39,71 @@ describe('UploadForm', () => {
     );
   });
 
-  it('shows a validation error for an out-of-range confidence value', async () => {
+  it('disables the toggle and submit buttons while loading', () => {
+    render(<UploadForm loading onSubmit={vi.fn()} />);
+
+    expect(screen.getByRole('button', { name: /^record$/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /analyzing/i })).toBeDisabled();
+  });
+
+  it('auto-fills lat/lon from the device location when a file is selected', async () => {
+    vi.mocked(geolocation.requestCurrentPosition).mockResolvedValue({ lat: 50.18, lon: 8.74 });
+
     const user = userEvent.setup();
     const onSubmit = vi.fn();
 
     render(<UploadForm loading={false} onSubmit={onSubmit} />);
+    await user.click(screen.getByRole('button', { name: /^upload$/i }));
 
-    const minConfInput = screen.getByLabelText(/minimum confidence/i);
-    await user.clear(minConfInput);
-    await user.type(minConfInput, '5');
-    await user.tab();
+    const file = new File(['fake audio content'], 'clip.wav', { type: 'audio/wav' });
+    await user.upload(screen.getByLabelText(/audio file/i), file);
 
-    expect(screen.getByText(/enter a value between 0 and 1/i)).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('50.1800, 8.7400')).toBeInTheDocument());
+
+    // Values are tracked even while the coordinate inputs are collapsed --
+    // expand via "Edit" to confirm they were actually populated.
+    await user.click(screen.getByRole('button', { name: /edit/i }));
+    expect(screen.getByLabelText(/latitude/i)).toHaveValue(50.18);
+    expect(screen.getByLabelText(/longitude/i)).toHaveValue(8.74);
+
+    await user.click(screen.getByRole('button', { name: /analyze audio/i }));
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ lat: '50.18', lon: '8.74' }));
   });
 
-  it('disables the toggle and submit buttons while loading', () => {
-    render(<UploadForm loading onSubmit={vi.fn()} />);
+  it('does not override manually entered coordinates with the detected location', async () => {
+    vi.mocked(geolocation.requestCurrentPosition).mockResolvedValue({ lat: 50.18, lon: 8.74 });
 
-    expect(screen.getByRole('button', { name: /record audio/i })).toBeDisabled();
-    expect(screen.getByRole('button', { name: /analyzing/i })).toBeDisabled();
+    const user = userEvent.setup();
+    render(<UploadForm loading={false} onSubmit={vi.fn()} />);
+
+    await user.click(screen.getByRole('button', { name: /set manually/i }));
+    await user.type(screen.getByLabelText(/latitude/i), '10');
+    await user.type(screen.getByLabelText(/longitude/i), '20');
+
+    await user.click(screen.getByRole('button', { name: /^upload$/i }));
+    const file = new File(['fake audio content'], 'clip.wav', { type: 'audio/wav' });
+    await user.upload(screen.getByLabelText(/audio file/i), file);
+
+    expect(geolocation.requestCurrentPosition).not.toHaveBeenCalled();
+    expect(screen.getByLabelText(/latitude/i)).toHaveValue(10);
+    expect(screen.getByLabelText(/longitude/i)).toHaveValue(20);
+  });
+
+  it('leaves location empty without error when it is unavailable or denied', async () => {
+    vi.mocked(geolocation.requestCurrentPosition).mockResolvedValue(null);
+
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(<UploadForm loading={false} onSubmit={onSubmit} />);
+
+    await user.click(screen.getByRole('button', { name: /^upload$/i }));
+    const file = new File(['fake audio content'], 'clip.wav', { type: 'audio/wav' });
+    await user.upload(screen.getByLabelText(/audio file/i), file);
+
+    await waitFor(() => expect(geolocation.requestCurrentPosition).toHaveBeenCalledTimes(1));
+    expect(screen.getByText(/no location set/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /analyze audio/i }));
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ lat: '', lon: '' }));
   });
 });

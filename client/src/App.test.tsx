@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
 import * as apiClient from './api/client';
@@ -14,17 +15,19 @@ vi.mock('./api/client', async () => {
   };
 });
 
-function renderApp() {
+function renderApp(initialPath = '/') {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={queryClient}>
-      <App />
+      <MemoryRouter initialEntries={[initialPath]}>
+        <App />
+      </MemoryRouter>
     </QueryClientProvider>
   );
 }
 
 async function uploadFile(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByRole('button', { name: /upload file/i }));
+  await user.click(screen.getByRole('button', { name: /^upload$/i }));
   const file = new File(['fake audio content'], 'clip.wav', { type: 'audio/wav' });
   await user.upload(screen.getByLabelText(/audio file/i), file);
 }
@@ -65,5 +68,21 @@ describe('App', () => {
     await waitFor(() =>
       expect(screen.getByText(/analysis request to the birdnet service failed/i)).toBeInTheDocument()
     );
+  });
+
+  it('navigates between the Analyze, List, and Map views via the top nav', async () => {
+    const user = userEvent.setup();
+    renderApp();
+
+    expect(screen.getByRole('heading', { name: /analyze a recording/i })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('link', { name: /^list$/i }));
+    expect(await screen.findByRole('heading', { name: /analysis history/i })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('link', { name: /map/i }));
+    expect(await screen.findByRole('heading', { name: /recordings map/i })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('link', { name: /analyze/i }));
+    expect(await screen.findByRole('heading', { name: /analyze a recording/i })).toBeInTheDocument();
   });
 });

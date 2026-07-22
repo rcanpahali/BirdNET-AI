@@ -38,6 +38,12 @@ class AnalyzerService:
         if self._analyzer is None:
             raise RuntimeError("Analyzer used before it was loaded")
 
+        # birdnetlib only *sets* a location-based species allow-list on the shared
+        # Analyzer when lat/lon are given -- it never clears it otherwise, so a prior
+        # request's location silently keeps filtering every later request that has none.
+        if lat is None or lon is None:
+            self._analyzer.custom_species_list = []
+
         start = time.time()
         try:
             recording = Recording(

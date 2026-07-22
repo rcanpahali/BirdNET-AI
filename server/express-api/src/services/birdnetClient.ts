@@ -9,8 +9,6 @@ interface AnalyzeUpstreamParams {
   filePath: string;
   originalName: string;
   mimetype: string;
-  lat?: number;
-  lon?: number;
   minConf?: number;
 }
 
@@ -24,8 +22,6 @@ export async function analyzeUpstream(params: AnalyzeUpstreamParams): Promise<An
   });
 
   const query: Record<string, string> = {};
-  if (params.lat !== undefined) query.lat = String(params.lat);
-  if (params.lon !== undefined) query.lon = String(params.lon);
   if (params.minConf !== undefined) query.min_conf = String(params.minConf);
 
   try {

@@ -30,12 +30,13 @@ export async function analyzeController(req: Request, res: Response): Promise<vo
 
     const { lat, lon, min_conf: minConf } = parsedFields.data;
 
+    // lat/lon are stored for the analysis history/map, not sent upstream -- BirdNET's
+    // location-based species filtering excludes anything outside the recording's
+    // region, which is wrong for arbitrary uploads that weren't recorded on-site.
     const result = await analyzeUpstream({
       filePath: file.path,
       originalName: file.originalname,
       mimetype: file.mimetype,
-      lat,
-      lon,
       minConf,
     });
 

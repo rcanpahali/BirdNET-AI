@@ -72,7 +72,10 @@ Node.js 22+, `ffmpeg` on PATH.
 - `server/express-api/drizzle/` — generated migrations; regenerate via `npm run db:generate --workspace server/express-api` after editing `schema.ts`
 - `server/express-api/src/services/birdnetClient.ts` — streams uploads to FastAPI, normalizes upstream errors
 - `packages/types/src/index.ts` — `Detection` / `AnalyzerResponse` / `Analysis` — the single source of truth for API shapes shared by `client` and `server/express-api`
-- `client/src/App.tsx` — SPA entry; hits `VITE_API_URL` (default `http://localhost:8080`)
+- `client/src/App.tsx` — route shell (React Router): `/` → `ListPage`, `/map` → `MapPage` (lazy-loaded, since Leaflet is a meaningful bundle addition). Hits `VITE_API_URL` (default `http://localhost:8080`)
+- `client/src/pages/ListPage.tsx` — upload/record form + results + analysis history list (the "main" view)
+- `client/src/pages/MapPage.tsx` — clustered map (Leaflet + react-leaflet + react-leaflet-cluster, OpenStreetMap tiles) of analyses that have a location; skips analyses with null lat/lon
+- `client/src/lib/geolocation.ts` — `requestCurrentPosition()`; wraps the browser Geolocation API, always resolves (never rejects) — `null` means unsupported/denied/timed out, callers treat that as "leave location empty," not an error
 - `docker-compose.yml` — multi-service definition; Express waits for FastAPI healthcheck before starting
 
 ## Configuration

@@ -6,6 +6,7 @@ import type { createApp as CreateApp } from '../src/app';
 
 let fakeUpstream: Server;
 let app: ReturnType<typeof CreateApp>;
+const analyzeRequestUrls: string[] = [];
 
 const upstreamAnalyzeResponse = {
   filename: 'clip.wav',
@@ -31,6 +32,7 @@ beforeAll(async () => {
       return;
     }
     if (req.url?.startsWith('/analyze')) {
+      analyzeRequestUrls.push(req.url);
       res.writeHead(200);
       res.end(JSON.stringify(upstreamAnalyzeResponse));
       return;
@@ -105,6 +107,41 @@ describe('POST /analyze', () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual(upstreamAnalyzeResponse);
+  });
+});
+
+describe('POST /analyze location handling', () => {
+  it('does not forward lat/lon to the upstream analyzer, even when provided', async () => {
+    // BirdNET's location-based species filtering excludes anything outside the
+    // recording's region, which is wrong for arbitrary uploads not recorded on-site.
+    const before = analyzeRequestUrls.length;
+
+    await request(app)
+      .post('/analyze')
+      .attach('file', Buffer.from('RIFF....WAVEfmt '), 'clip.wav')
+      .field('lat', '50.12')
+      .field('lon', '8.69');
+
+    const [analyzeUrl] = analyzeRequestUrls.slice(before);
+
+    expect(analyzeUrl).not.toMatch(/lat=/);
+    expect(analyzeUrl).not.toMatch(/lon=/);
+  });
+
+  it('still persists the submitted lat/lon for analysis history', async () => {
+    await request(app)
+      .post('/analyze')
+      .attach('file', Buffer.from('RIFF....WAVEfmt '), 'clip.wav')
+      .field('lat', '50.12')
+      .field('lon', '8.69');
+
+    const response = await request(app).get('/analyses');
+    const match = response.body.find(
+      (analysis: { lat: number | null }) => analysis.lat !== null && Math.abs(analysis.lat - 50.12) < 0.001
+    );
+
+    expect(match).toBeDefined();
+    expect(match.lon).toBeCloseTo(8.69);
   });
 });
 
