@@ -95,29 +95,29 @@ Top Navigation Bar
 
 Contains:
 
-- Project selector
-- Notifications
-- User profile
-- Settings
+- [x] Project selector
+- [x] Notifications (empty-state shell only -- not wired up to a backend yet)
+- [x] User profile (mock user, no auth yet)
+- [x] Settings
 
 Left Sidebar
 
 Contains navigation:
 
-- Dashboard
-- Recordings (They are not stored in the database yet)
-- Interactive Map
-- Statistics
-- Projects
-- Settings (Just a button for now)
+- [x] Dashboard
+- [x] Recordings
+- [x] Interactive Map
+- [x] Statistics
+- [x] Projects
+- [x] Settings (page exists, but is a placeholder -- no settings are wired up to a backend yet)
 
 Main Content Area
 
-Displays the currently selected module.
+- [x] Displays the currently selected module.
 
 Right Side Context Panel
 
-Optional details panel that updates based on the selected recording or map marker.
+- [x] Optional details panel that updates based on the selected recording or map marker.
 
 ## Dashboard
 
@@ -125,20 +125,20 @@ The dashboard should immediately provide an overview of the current project.
 
 Display cards for:
 
-- Total recordings in the selected project
-- Recording hours
-- Active recording locations
-- Species detected
-- Estimated biodiversity index
-- Upload success rate
-- Recent activity
+- [x] Total recordings in the selected project (not actually project-scoped yet -- shows all recordings regardless of the selected project)
+- [ ] Recording hours (placeholder -- always shows "—", no duration field exists yet)
+- [x] Active recording locations
+- [x] Species detected
+- [x] Estimated biodiversity index
+- [ ] Upload success rate (placeholder -- always shows "—", failures aren't tracked yet)
+- [x] Recent activity
 
 Below the cards:
 
-- Interactive map
-- Weekly recording activity chart
-- Species distribution chart
-- Recent recordings table
+- [x] Interactive map
+- [x] Weekly recording activity chart
+- [x] Species distribution chart
+- [x] Recent recordings table
 
 ## Interactive Map
 
@@ -146,57 +146,57 @@ The map is one of the primary features.
 
 Requirements:
 
-- Large interactive map
-- Marker clustering
-- Zoom controls
-- Layer controls
-- Heatmap support
-- Satellite and terrain view
-- Filtering by date
-- Filtering by species
-- Filtering by project
+- [x] Large interactive map
+- [x] Marker clustering
+- [x] Zoom controls
+- [x] Layer controls
+- [x] Heatmap support
+- [x] Satellite and terrain view
+- [x] Filtering by date
+- [x] Filtering by species
+- [ ] Filtering by project (UI exists, but recordings aren't scoped to a project server-side yet -- non-default projects always show 0 results)
 
 Clicking a marker opens a side panel showing:
 
-- Recording information
-- Timestamp
-- GPS coordinates
-- AI detection summary
-- Species detected
-- Confidence score
-- Notes
+- [x] Recording information
+- [x] Timestamp
+- [x] GPS coordinates
+- [x] AI detection summary
+- [x] Species detected
+- [x] Confidence score
+- [ ] Notes (disabled placeholder field -- no notes column exists yet)
 
 ## Recordings Page
 
 Display recordings in both:
 
-- Table view
-- Card view
+- [x] Table view
+- [x] Card view
 
 Each recording includes:
 
-- Name
-- Date
-- Duration
-- GPS location
-- Upload status
-- AI status
-- Species count
-- Recording quality
-- Tags
+- [x] Name
+- [x] Date
+- [ ] Duration (no duration field exists yet)
+- [x] GPS location
+- [ ] Upload status (hardcoded "Uploaded" badge on every row, not derived from a real field)
+- [ ] AI status (hardcoded "Analyzed" badge on every row, not derived from a real field)
+- [x] Species count
+- [ ] Recording quality (placeholder -- always "Not assessed", no field exists yet)
+- [ ] Tags (placeholder -- always "None" in the detail panel, no field exists yet)
 
 Actions:
 
-- Open on map
-- View details
+- [ ] Open on map (not implemented)
+- [x] View details
 
 ## Upload Experience
 
 Support:
 
-- Drag and drop upload
-- Upload progress
-- Failed upload recovery
+- [x] Drag and drop upload
+- [x] Upload progress
+- [x] Failed upload recovery
 
 Progress should be clearly visible.
 
@@ -204,13 +204,13 @@ Progress should be clearly visible.
 
 Each processed recording should display:
 
-- Species detected
-- Confidence
-- Number of calls
-- Recording quality
-- Background noise level
-- Detection timeline
-- AI generated summary
+- [x] Species detected
+- [x] Confidence
+- [x] Number of calls
+- [ ] Recording quality (placeholder -- always "Not assessed")
+- [ ] Background noise level (not implemented -- unused placeholder constant only)
+- [x] Detection timeline (only available for a recording still in memory from the current upload/record session -- audio isn't persisted, so historical recordings can't show one)
+- [ ] AI generated summary (not implemented)
 
 Use charts instead of long text whenever possible.
 
@@ -218,27 +218,27 @@ Use charts instead of long text whenever possible.
 
 Create an analytics page containing:
 
-- Species trends over time
-- Recordings by location
-- Biodiversity heatmaps
-- Seasonal comparisons
-- Recording frequency
-- Upload statistics
-- Interactive filters
+- [x] Species trends over time (mock data -- not computed from real detections yet)
+- [x] Recordings by location
+- [x] Biodiversity heatmaps (mock data -- hardcoded sample locations, not derived from real detections)
+- [x] Seasonal comparisons (mock data -- hardcoded year-over-year numbers)
+- [x] Recording frequency
+- [ ] Upload statistics (placeholder -- always shows "—", failures aren't tracked yet)
+- [x] Interactive filters
 
 Charts should be clean, modern, and interactive.
 
 ## Audio Player (no audio stored in the database yet)
 
-The audio player should include:
+The audio player should include (all only available for a recording still in memory from the current upload/record session -- historical recordings show a disabled placeholder player):
 
-- Waveform visualization
-- Play and pause
-- Playback speed
-- Zoomable waveform
-- Timestamp markers
-- AI detection markers
-- Download button
+- [x] Waveform visualization
+- [x] Play and pause
+- [x] Playback speed
+- [x] Zoomable waveform
+- [x] Timestamp markers
+- [x] AI detection markers
+- [x] Download button
 
 ## Empty States
 
@@ -246,11 +246,9 @@ Design informative empty states.
 
 Examples:
 
-"No recordings available."
-
-"Upload your first audio recording."
-
-"Select a map location to begin."
+- [x] "No recordings available."
+- [x] "Upload your first audio recording."
+- [x] "Select a map location to begin."
 
 Avoid playful illustrations.
 
@@ -258,9 +256,8 @@ Use clean scientific graphics.
 
 ## Loading States
 
-Prefer skeleton loading over spinners.
-
-Use progressive rendering for maps and tables.
+- [x] Prefer skeleton loading over spinners.
+- [ ] Use progressive rendering for maps and tables. (not implemented -- full dataset renders at once, no chunking/virtualization)
 
 ## Animations
 
@@ -268,13 +265,13 @@ Animations should be subtle.
 
 Examples:
 
-- Sidebar transitions
-- Map marker animations
-- Smooth filtering
-- Card hover effects
-- Upload progress
-- Table sorting
-- Expandable detail panels
+- [ ] Sidebar transitions (only a color transition on hover/active nav items -- no collapse/expand animation)
+- [x] Map marker animations (default cluster animation from `react-leaflet-cluster`; no custom marker-select animation)
+- [ ] Smooth filtering (map/table filters re-render instantly, no transition)
+- [x] Card hover effects
+- [x] Upload progress
+- [ ] Table sorting (not implemented -- tables aren't sortable yet)
+- [ ] Expandable detail panels (context panel mounts/unmounts instantly, no slide/expand transition)
 
 Animations should enhance usability without becoming distracting.
 
@@ -282,18 +279,18 @@ Animations should enhance usability without becoming distracting.
 
 Use reusable components including:
 
-- Cards
-- Tables
-- Interactive charts
-- Tree views
-- Filter chips
-- Badges
-- Progress indicators
-- Context menus
-- Breadcrumbs
-- Split panels
-- Resizable panels
-- Modal dialogs
+- [x] Cards
+- [x] Tables
+- [x] Interactive charts
+- [ ] Tree views (not implemented)
+- [ ] Filter chips (filtering exists, but via selects/popovers/checkboxes, not a chip UI)
+- [x] Badges
+- [x] Progress indicators
+- [ ] Context menus (only click-triggered dropdown menus exist, no right-click context menu)
+- [ ] Breadcrumbs (primitive component exists but isn't used on any page yet)
+- [x] Split panels
+- [x] Resizable panels
+- [x] Modal dialogs
 
 ## Overall Impression
 

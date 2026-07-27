@@ -11,16 +11,11 @@ A web application for analyzing bird sounds using the BirdNET AI model. Upload o
 ## Architecture
 
 ```
-Browser  ──▶  Express (TS)  ──▶  FastAPI (Python, internal-only)
-             owns:                owns:
-             - API contract        - BirdNET inference, nothing else
-             - persistence (SQLite via Drizzle)
-             - validation
+Browser  ──▶  Express (TS, :8080)  ──▶  FastAPI (Python, :8000, internal-only)
 ```
 
-Express is the only service with a public API contract. FastAPI is a stateless,
-internal-only inference service reached exclusively by Express — it's never
-exposed to the browser or a public port.
+- **Express** owns the public API contract, request validation, and persistence (SQLite via Drizzle) — recording metadata and detections only, not the raw audio file.
+- **FastAPI** owns BirdNET inference only — stateless, no persistence, no CORS, and never reachable from the browser or a published port. Express is its only caller.
 
 ## Tech Stack
 
@@ -61,7 +56,8 @@ npm run dev --workspace client              # React dev server — :3000
 
 ## Data & Persistence
 
-- Express stores every analysis and its detections in SQLite via Drizzle ORM (default path `server/express-api/data/birdnet.db`).
+- Express stores every analysis and its detections in SQLite via Drizzle ORM (default path `server/express-api/data/birdnet.db`) — this is metadata only (filename, size, GPS, detections), not the audio file itself.
+- The uploaded audio is streamed to a temp file for analysis and deleted once it completes; there's no blob/object storage, so past recordings can't be played back or re-downloaded.
 - Configure the path via `DATABASE_PATH` in `server/express-api/.env`.
 - Migrations live in `server/express-api/drizzle/`. Run `npm run db:generate --workspace server/express-api` after changing `src/db/schema.ts`.
 - `data/` is git-ignored; docker-compose bind-mounts it so history survives container rebuilds.

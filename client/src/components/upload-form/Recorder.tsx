@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { MediaRecorder as WavMediaRecorder, register } from 'extendable-media-recorder';
 import type { IMediaRecorder } from 'extendable-media-recorder';
 import { connect } from 'extendable-media-recorder-wav-encoder';
-import { MicIcon, TrashIcon } from '../icons';
+import { Mic, Trash2 } from 'lucide-react';
+import { Button } from '../ui/button';
+import { cn } from '../../lib/utils';
 
 interface RecorderProps {
   onRecordingComplete: (file: File) => void;
@@ -97,37 +99,40 @@ export function Recorder({ onRecordingComplete, onRecordingStart, disabled = fal
   };
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-6">
+    <div className="rounded-lg border border-border bg-muted/40 px-4 py-6">
       <div className="flex flex-col items-center gap-2">
         <button
           type="button"
           onClick={isRecording ? stopRecording : startRecording}
           disabled={disabled}
           title={isRecording ? 'Stop Recording' : 'Start Recording'}
-          className={`flex h-16 w-16 items-center justify-center rounded-full text-white transition disabled:cursor-not-allowed disabled:opacity-50 ${
-            isRecording ? 'animate-pulse bg-red-600' : 'bg-emerald-600 hover:bg-emerald-700'
-          }`}
+          className={cn(
+            'flex h-16 w-16 items-center justify-center rounded-full text-primary-foreground transition disabled:cursor-not-allowed disabled:opacity-50',
+            isRecording ? 'animate-pulse bg-destructive' : 'bg-primary hover:bg-primary/90'
+          )}
         >
-          <MicIcon className="h-6 w-6" />
+          <Mic className="size-6" />
         </button>
-        <p className="text-xs text-slate-500">{isRecording ? 'Recording…' : 'Tap to record'}</p>
-        {isRecording && <span className="font-mono text-lg font-semibold text-red-600">{formatTime(recordingTime)}</span>}
+        <p className="text-xs text-muted-foreground">{isRecording ? 'Recording…' : 'Tap to record'}</p>
+        {isRecording && <span className="font-mono text-lg font-semibold text-destructive">{formatTime(recordingTime)}</span>}
       </div>
 
-      {error && <p className="mt-3 text-center text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-3 text-center text-sm text-destructive">{error}</p>}
 
       {audioBlob && !isRecording && (
         <div className="mt-4">
           <div className="mb-2 flex items-center justify-center gap-3">
-            <p className="text-sm font-medium text-emerald-700">Recording ready ({formatTime(recordingTime)})</p>
-            <button
+            <p className="text-sm font-medium text-primary">Recording ready ({formatTime(recordingTime)})</p>
+            <Button
               type="button"
+              variant="ghost"
+              size="icon"
               onClick={clearRecording}
               title="Delete recording and start over"
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-red-50 hover:text-red-600"
+              className="size-7 text-muted-foreground hover:text-destructive"
             >
-              <TrashIcon className="h-4 w-4" />
-            </button>
+              <Trash2 className="size-4" />
+            </Button>
           </div>
           <audio controls src={URL.createObjectURL(audioBlob)} className="w-full" />
         </div>

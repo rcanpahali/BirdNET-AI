@@ -1,10 +1,10 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
 import * as apiClient from './api/client';
+import { renderWithProviders } from './test/renderWithProviders';
 
 vi.mock('./api/client', async () => {
   const actual = await vi.importActual<typeof import('./api/client')>('./api/client');
@@ -15,74 +15,93 @@ vi.mock('./api/client', async () => {
   };
 });
 
-function renderApp(initialPath = '/') {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(
-    <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={[initialPath]}>
-        <App />
-      </MemoryRouter>
-    </QueryClientProvider>
-  );
-}
+// The lazy-loaded Interactive Map route pulls in real Leaflet, which needs
+// real browser layout jsdom doesn't provide -- mock it here too (mirroring
+// MapPage.test.tsx) purely so the shell-level lazy-loading/routing itself
+// can be exercised without a real map render.
+vi.mock('react-leaflet', () => ({
+  MapContainer: ({ children }: { children: ReactNode }) => <div data-testid="map-container">{children}</div>,
+  TileLayer: () => null,
+  Marker: ({ children }: { children: ReactNode }) => <div data-testid="marker">{children}</div>,
+  Popup: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  Tooltip: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  useMap: () => ({ fitBounds: vi.fn() }),
+}));
 
-async function uploadFile(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByRole('button', { name: /^upload$/i }));
-  const file = new File(['fake audio content'], 'clip.wav', { type: 'audio/wav' });
-  await user.upload(screen.getByLabelText(/audio file/i), file);
-}
+vi.mock('react-leaflet-cluster', () => ({
+  default: ({ children }: { children: ReactNode }) => <div data-testid="cluster">{children}</div>,
+}));
 
 describe('App', () => {
   beforeEach(() => {
     vi.mocked(apiClient.fetchAnalyses).mockResolvedValue([]);
   });
 
-  it('submits an upload and renders the analysis results', async () => {
-    vi.mocked(apiClient.analyzeAudio).mockResolvedValue({
-      filename: 'clip.wav',
-      detection_count: 1,
-      detections: [
-        { common_name: 'Robin', scientific_name: 'Erithacus rubecula', confidence: 0.8, start_time: 0, end_time: 3 },
-      ],
-    });
-
-    const user = userEvent.setup();
-    renderApp();
-
-    await uploadFile(user);
-    await user.click(screen.getByRole('button', { name: /analyze audio/i }));
-
-    await waitFor(() => expect(screen.getByText('Robin')).toBeInTheDocument());
-    expect(apiClient.analyzeAudio).toHaveBeenCalledTimes(1);
+  it('shows the Dashboard at the root route', async () => {
+    renderWithProviders(<App />);
+    expect(await screen.findByRole('heading', { name: /dashboard/i })).toBeInTheDocument();
   });
 
-  it('shows an error message when analysis fails', async () => {
-    vi.mocked(apiClient.analyzeAudio).mockRejectedValue(new Error('Analysis request to the BirdNET service failed'));
-
+  it('navigates between Dashboard, Recordings, Interactive Map, Statistics, and Projects via the sidebar', async () => {
     const user = userEvent.setup();
-    renderApp();
+    renderWithProviders(<App />);
 
-    await uploadFile(user);
-    await user.click(screen.getByRole('button', { name: /analyze audio/i }));
+    const nav = screen.getByRole('navigation', { name: /primary/i });
+    await screen.findByRole('heading', { name: /dashboard/i });
 
-    await waitFor(() =>
-      expect(screen.getByText(/analysis request to the birdnet service failed/i)).toBeInTheDocument()
-    );
+    await user.click(within(nav).getByRole('link', { name: /^recordings$/i }));
+    expect(await screen.findByRole('heading', { name: /^recordings$/i })).toBeInTheDocument();
+
+    await user.click(within(nav).getByRole('link', { name: /interactive map/i }));
+    expect(await screen.findByRole('heading', { name: /interactive map/i })).toBeInTheDocument();
+
+    await user.click(within(nav).getByRole('link', { name: /^statistics$/i }));
+    expect(await screen.findByRole('heading', { name: /^statistics$/i })).toBeInTheDocument();
+
+    await user.click(within(nav).getByRole('link', { name: /^projects$/i }));
+    expect(await screen.findByRole('heading', { name: /^projects$/i })).toBeInTheDocument();
+
+    await user.click(within(nav).getByRole('link', { name: /^dashboard$/i }));
+    expect(await screen.findByRole('heading', { name: /^dashboard$/i })).toBeInTheDocument();
   });
 
-  it('navigates between the Analyze, List, and Map views via the top nav', async () => {
+  it('clicking "New recording" on the Dashboard navigates to Recordings and opens the dialog there', async () => {
     const user = userEvent.setup();
-    renderApp();
+    renderWithProviders(<App />);
 
-    expect(screen.getByRole('heading', { name: /analyze a recording/i })).toBeInTheDocument();
+    await screen.findByRole('heading', { name: /dashboard/i });
+    await user.click(screen.getByRole('button', { name: /new recording/i }));
 
-    await user.click(screen.getByRole('link', { name: /^list$/i }));
-    expect(await screen.findByRole('heading', { name: /analysis history/i })).toBeInTheDocument();
+    // The dialog opens on top of the Recordings page -- its own heading is
+    // correctly hidden from the accessibility tree while the modal is open.
+    expect(await screen.findByRole('heading', { name: /^new recording$/i })).toBeInTheDocument();
 
-    await user.click(screen.getByRole('link', { name: /map/i }));
-    expect(await screen.findByRole('heading', { name: /recordings map/i })).toBeInTheDocument();
+    await user.keyboard('{Escape}');
+    expect(await screen.findByRole('heading', { name: /^recordings$/i })).toBeInTheDocument();
+  });
 
-    await user.click(screen.getByRole('link', { name: /analyze/i }));
-    expect(await screen.findByRole('heading', { name: /analyze a recording/i })).toBeInTheDocument();
+  it("clicking the sidebar's Recordings link just navigates, without opening the dialog", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<App />);
+
+    const nav = screen.getByRole('navigation', { name: /primary/i });
+    await screen.findByRole('heading', { name: /dashboard/i });
+
+    await user.click(within(nav).getByRole('link', { name: /^recordings$/i }));
+
+    expect(await screen.findByRole('heading', { name: /^recordings$/i })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /^new recording$/i })).not.toBeInTheDocument();
+  });
+
+  it('switches projects from the top nav project selector', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<App />);
+
+    await screen.findByRole('heading', { name: /dashboard/i });
+    await user.click(screen.getByRole('button', { name: /bad vilbel wetlands/i }));
+    await user.click(await screen.findByText(/alpine meadow survey/i));
+
+    expect(await screen.findByText(/overview for alpine meadow survey/i)).toBeInTheDocument();
+    expect(screen.getByText(/no recordings linked to it yet/i)).toBeInTheDocument();
   });
 });

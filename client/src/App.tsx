@@ -1,30 +1,36 @@
 import { Suspense, lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import { Nav } from './components/Nav';
-import { HomePage } from './pages/HomePage';
-import { ListPage } from './pages/ListPage';
+import { AppShell } from './components/layout/AppShell';
+import { DashboardPage } from './pages/DashboardPage';
+import { RecordingsPage } from './pages/RecordingsPage';
+import { StatisticsPage } from './pages/StatisticsPage';
+import { ProjectsPage } from './pages/ProjectsPage';
+import { SettingsPage } from './pages/SettingsPage';
+import { Skeleton } from './components/ui/skeleton';
 
 // Leaflet + clustering are a meaningful bundle addition that only the Map
-// view needs -- code-split so the (more common) Home view stays lean.
+// view needs -- code-split so the (more common) Dashboard view stays lean.
 const MapPage = lazy(() => import('./pages/MapPage'));
 
 function App() {
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Nav />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/list" element={<ListPage />} />
+    <Routes>
+      <Route element={<AppShell />}>
+        <Route index element={<DashboardPage />} />
+        <Route path="recordings" element={<RecordingsPage />} />
         <Route
-          path="/map"
+          path="map"
           element={
-            <Suspense fallback={<p className="p-8 text-center text-slate-500">Loading map…</p>}>
+            <Suspense fallback={<Skeleton className="h-[70vh] w-full" />}>
               <MapPage />
             </Suspense>
           }
         />
-      </Routes>
-    </div>
+        <Route path="statistics" element={<StatisticsPage />} />
+        <Route path="projects" element={<ProjectsPage />} />
+        <Route path="settings" element={<SettingsPage />} />
+      </Route>
+    </Routes>
   );
 }
 

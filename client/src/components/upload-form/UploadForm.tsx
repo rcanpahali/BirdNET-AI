@@ -1,7 +1,10 @@
 import { useState } from 'react';
-import type { ChangeEvent, FormEvent } from 'react';
+import type { ChangeEvent, DragEvent, FormEvent } from 'react';
+import { Mic, MapPin, Upload } from 'lucide-react';
 import { requestCurrentPosition } from '../../lib/geolocation';
-import { MicIcon, PinIcon, UploadIcon } from '../icons';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { cn } from '../../lib/utils';
 import { Recorder } from './Recorder';
 
 export interface UploadFormValues {
@@ -39,12 +42,10 @@ function validate(values: UploadFormValues): FormErrors {
 }
 
 const segmentButtonClasses = (active: boolean) =>
-  `flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-    active ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-  }`;
-
-const fieldClasses =
-  'w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50';
+  cn(
+    'flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50',
+    active ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+  );
 
 export function UploadForm({ loading, onSubmit, onFileSelected }: UploadFormProps) {
   const [values, setValues] = useState<UploadFormValues>(initialValues);
@@ -52,6 +53,7 @@ export function UploadForm({ loading, onSubmit, onFileSelected }: UploadFormProp
   const [inputMode, setInputMode] = useState<'record' | 'upload'>('record');
   const [locationStatus, setLocationStatus] = useState<LocationStatus>('idle');
   const [showLocationFields, setShowLocationFields] = useState(false);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
 
   const errors = validate(values);
   const hasErrors = Boolean(errors.file || errors.lat || errors.lon);
@@ -82,14 +84,25 @@ export function UploadForm({ loading, onSubmit, onFileSelected }: UploadFormProp
     }
   };
 
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.currentTarget.files?.[0] ?? null;
+  const selectFile = (selectedFile: File | null) => {
     setField('file', selectedFile);
     markTouched('file');
     if (selectedFile) {
       onFileSelected?.();
       void detectLocation();
     }
+  };
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    selectFile(event.currentTarget.files?.[0] ?? null);
+  };
+
+  const handleDrop = (event: DragEvent<HTMLLabelElement>) => {
+    event.preventDefault();
+    setIsDraggingOver(false);
+    if (loading) return;
+    const droppedFile = event.dataTransfer.files?.[0];
+    if (droppedFile) selectFile(droppedFile);
   };
 
   const handleRecordingComplete = (file: File) => {
@@ -134,15 +147,15 @@ export function UploadForm({ loading, onSubmit, onFileSelected }: UploadFormProp
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <span className="mb-2 block text-sm font-medium text-slate-700">Audio source</span>
-        <div className="flex gap-1 rounded-lg bg-slate-100 p-1">
+        <span className="mb-2 block text-sm font-medium text-foreground">Audio source</span>
+        <div className="flex gap-1 rounded-lg bg-muted p-1">
           <button
             type="button"
             onClick={() => setInputMode('record')}
             disabled={loading}
             className={segmentButtonClasses(inputMode === 'record')}
           >
-            <MicIcon /> Record
+            <Mic className="size-4" /> Record
           </button>
           <button
             type="button"
@@ -150,7 +163,7 @@ export function UploadForm({ loading, onSubmit, onFileSelected }: UploadFormProp
             disabled={loading}
             className={segmentButtonClasses(inputMode === 'upload')}
           >
-            <UploadIcon /> Upload
+            <Upload className="size-4" /> Upload
           </button>
         </div>
       </div>
@@ -164,8 +177,19 @@ export function UploadForm({ loading, onSubmit, onFileSelected }: UploadFormProp
           />
         ) : (
           <>
-            <span className="mb-2 block text-sm font-medium text-slate-700">Audio file</span>
-            <label className="flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500 transition has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50 has-[:not(:disabled)]:hover:border-emerald-400 has-[:not(:disabled)]:hover:bg-emerald-50/50">
+            <span className="mb-2 block text-sm font-medium text-foreground">Audio file</span>
+            <label
+              onDragOver={(e) => {
+                e.preventDefault();
+                if (!loading) setIsDraggingOver(true);
+              }}
+              onDragLeave={() => setIsDraggingOver(false)}
+              onDrop={handleDrop}
+              className={cn(
+                'flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed px-4 py-6 text-center text-sm transition has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50',
+                isDraggingOver ? 'border-primary bg-primary/5' : 'border-input bg-muted/40 text-muted-foreground has-[:not(:disabled)]:hover:border-primary/50 has-[:not(:disabled)]:hover:bg-primary/5'
+              )}
+            >
               <input
                 type="file"
                 aria-label="Audio file"
@@ -175,32 +199,31 @@ export function UploadForm({ loading, onSubmit, onFileSelected }: UploadFormProp
                 className="sr-only"
               />
               {values.file ? (
-                <span className="font-medium text-emerald-700">{values.file.name}</span>
+                <span className="font-medium text-primary">{values.file.name}</span>
               ) : (
-                <span>Click to choose an audio file</span>
+                <>
+                  <Upload className="size-5 text-muted-foreground/70" />
+                  <span>Drag and drop an audio file, or click to browse</span>
+                </>
               )}
             </label>
           </>
         )}
-        {touched.file && errors.file && <p className="mt-2 text-sm text-red-600">{errors.file}</p>}
+        {touched.file && errors.file && <p className="mt-2 text-sm text-destructive">{errors.file}</p>}
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+      <div className="rounded-lg border border-border bg-muted/40 px-4 py-3">
         <div className="flex items-center justify-between gap-3">
-          <span className="flex min-w-0 items-center gap-2 text-sm text-slate-600">
-            <PinIcon className="h-4 w-4 shrink-0 text-slate-400" />
+          <span className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
+            <MapPin className="size-4 shrink-0 text-muted-foreground/70" />
             <span className="truncate">{locationSummary}</span>
           </span>
           <div className="flex shrink-0 gap-3 text-xs font-medium">
-            <button
-              type="button"
-              onClick={() => setShowLocationFields((prev) => !prev)}
-              className="text-emerald-700 hover:text-emerald-800"
-            >
+            <button type="button" onClick={() => setShowLocationFields((prev) => !prev)} className="text-primary hover:text-primary/80">
               {showLocationFields ? 'Hide' : hasLocation ? 'Edit' : 'Set manually'}
             </button>
             {hasLocation && (
-              <button type="button" onClick={clearLocation} className="text-slate-400 hover:text-red-600">
+              <button type="button" onClick={clearLocation} className="text-muted-foreground hover:text-destructive">
                 Clear
               </button>
             )}
@@ -213,7 +236,7 @@ export function UploadForm({ loading, onSubmit, onFileSelected }: UploadFormProp
               <label htmlFor="lat" className="sr-only">
                 Latitude
               </label>
-              <input
+              <Input
                 type="number"
                 id="lat"
                 step="any"
@@ -222,15 +245,14 @@ export function UploadForm({ loading, onSubmit, onFileSelected }: UploadFormProp
                 onBlur={() => markTouched('lat')}
                 placeholder="Latitude"
                 disabled={loading}
-                className={fieldClasses}
               />
-              {touched.lat && errors.lat && <p className="mt-1 text-xs text-red-600">{errors.lat}</p>}
+              {touched.lat && errors.lat && <p className="mt-1 text-xs text-destructive">{errors.lat}</p>}
             </div>
             <div>
               <label htmlFor="lon" className="sr-only">
                 Longitude
               </label>
-              <input
+              <Input
                 type="number"
                 id="lon"
                 step="any"
@@ -239,9 +261,8 @@ export function UploadForm({ loading, onSubmit, onFileSelected }: UploadFormProp
                 onBlur={() => markTouched('lon')}
                 placeholder="Longitude"
                 disabled={loading}
-                className={fieldClasses}
               />
-              {touched.lon && errors.lon && <p className="mt-1 text-xs text-red-600">{errors.lon}</p>}
+              {touched.lon && errors.lon && <p className="mt-1 text-xs text-destructive">{errors.lon}</p>}
             </div>
           </div>
         )}
@@ -249,10 +270,10 @@ export function UploadForm({ loading, onSubmit, onFileSelected }: UploadFormProp
 
       <div>
         <div className="mb-2 flex items-center justify-between">
-          <label htmlFor="minConf" className="text-sm font-medium text-slate-700">
+          <label htmlFor="minConf" className="text-sm font-medium text-foreground">
             Minimum confidence
           </label>
-          <span className="text-sm font-medium text-slate-500">{confidencePercent}%</span>
+          <span className="text-sm font-medium text-muted-foreground">{confidencePercent}%</span>
         </div>
         <input
           type="range"
@@ -263,17 +284,13 @@ export function UploadForm({ loading, onSubmit, onFileSelected }: UploadFormProp
           value={values.minConf}
           onChange={(event) => setField('minConf', event.target.value)}
           disabled={loading}
-          className="w-full accent-emerald-600 disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full accent-primary disabled:cursor-not-allowed disabled:opacity-50"
         />
       </div>
 
-      <button
-        type="submit"
-        disabled={loading || hasErrors}
-        className="w-full rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white transition hover:enabled:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
-      >
+      <Button type="submit" disabled={loading || hasErrors} className="w-full" size="lg">
         {loading ? 'Analyzing…' : 'Analyze audio'}
-      </button>
+      </Button>
     </form>
   );
 }

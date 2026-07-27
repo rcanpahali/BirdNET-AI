@@ -1,10 +1,12 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
+import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Analysis } from '@birdnet/types';
 import * as apiClient from '../api/client';
 import { MapPage } from './MapPage';
+import { ContextPanelSlot } from '../components/layout/ContextPanelSlot';
+import { renderWithProviders } from '../test/renderWithProviders';
 
 vi.mock('../api/client', async () => {
   const actual = await vi.importActual<typeof import('../api/client')>('../api/client');
@@ -16,12 +18,27 @@ vi.mock('../api/client', async () => {
 vi.mock('react-leaflet', () => ({
   MapContainer: ({ children }: { children: ReactNode }) => <div data-testid="map-container">{children}</div>,
   TileLayer: () => null,
-  Marker: ({ position, children }: { position: [number, number]; children: ReactNode }) => (
-    <div data-testid="marker" data-position={position.join(',')}>
+  Marker: ({
+    position,
+    children,
+    eventHandlers,
+  }: {
+    position: [number, number];
+    children: ReactNode;
+    eventHandlers?: { click?: () => void };
+  }) => (
+    <button
+      type="button"
+      data-testid="marker"
+      data-position={position.join(',')}
+      onClick={() => eventHandlers?.click?.()}
+    >
       {children}
-    </div>
+    </button>
   ),
   Popup: ({ children }: { children: ReactNode }) => <div data-testid="popup">{children}</div>,
+  Tooltip: ({ children }: { children: ReactNode }) => <div data-testid="tooltip">{children}</div>,
+  useMap: () => ({ fitBounds: vi.fn() }),
 }));
 
 vi.mock('react-leaflet-cluster', () => ({
@@ -29,11 +46,13 @@ vi.mock('react-leaflet-cluster', () => ({
 }));
 
 function renderMapPage() {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(
-    <QueryClientProvider client={queryClient}>
+  // MapPage only opens the context panel -- render the slot alongside it (as
+  // AppShell would) so its content is actually observable in the test.
+  return renderWithProviders(
+    <>
       <MapPage />
-    </QueryClientProvider>
+      <ContextPanelSlot />
+    </>
   );
 }
 
@@ -78,8 +97,7 @@ describe('MapPage', () => {
     const markers = await screen.findAllByTestId('marker');
     expect(markers).toHaveLength(1);
     expect(markers[0]).toHaveAttribute('data-position', '50.18,8.74');
-    expect(screen.getByText('Robin')).toBeInTheDocument();
-    expect(await screen.findByText(/1 recording with a known location/i)).toBeInTheDocument();
+    expect(await screen.findByText(/1 of 1 located recording/i)).toBeInTheDocument();
   });
 
   it('shows an empty-state message when nothing has a location yet', async () => {
@@ -87,7 +105,21 @@ describe('MapPage', () => {
 
     renderMapPage();
 
-    expect(await screen.findByText(/no recordings with location data yet/i)).toBeInTheDocument();
+    expect(await screen.findByText(/select a map location to begin/i)).toBeInTheDocument();
     expect(screen.queryByTestId('marker')).not.toBeInTheDocument();
+  });
+
+  it('opens the context panel with recording details when a marker is clicked', async () => {
+    vi.mocked(apiClient.fetchAnalyses).mockResolvedValue([withLocation]);
+    const user = userEvent.setup();
+
+    renderMapPage();
+
+    const marker = await screen.findByTestId('marker');
+    await user.click(marker);
+
+    expect(await screen.findByRole('heading', { name: 'robin.wav' })).toBeInTheDocument();
+    expect(screen.getByText('Robin')).toBeInTheDocument();
+    expect(screen.getByText('50.18000, 8.74000')).toBeInTheDocument();
   });
 });

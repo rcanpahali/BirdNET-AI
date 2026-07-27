@@ -9,15 +9,15 @@ export function ResultsPanel({ results }: ResultsPanelProps) {
   const { detection_count: detectionCount, filename, detections } = results;
 
   return (
-    <div className="mt-8 border-t border-slate-200 pt-6">
-      <h2 className="mb-1 text-lg font-semibold text-slate-900">Analysis results</h2>
-      <p className="mb-4 text-sm text-slate-500">
-        Found <strong className="font-semibold text-slate-700">{detectionCount}</strong> detection
-        {detectionCount !== 1 ? 's' : ''} in <strong className="font-semibold text-slate-700">{filename}</strong>
+    <div className="mt-8 border-t border-border pt-6">
+      <h2 className="mb-1 text-lg font-semibold text-foreground">Analysis results</h2>
+      <p className="mb-4 text-sm text-muted-foreground">
+        Found <strong className="font-semibold text-foreground">{detectionCount}</strong> detection
+        {detectionCount !== 1 ? 's' : ''} in <strong className="font-semibold text-foreground">{filename}</strong>
       </p>
 
       {detections.length === 0 ? (
-        <p className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-center text-sm text-slate-500">
+        <p className="rounded-lg border border-border bg-muted/40 p-4 text-center text-sm text-muted-foreground">
           No bird sounds detected with the current confidence threshold.
         </p>
       ) : (
