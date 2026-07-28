@@ -73,7 +73,8 @@ describe('App', () => {
     renderWithProviders(<App />);
 
     await screen.findByRole('heading', { name: /dashboard/i });
-    await user.click(screen.getByRole('button', { name: /new recording/i }));
+    const main = screen.getByRole('main');
+    await user.click(within(main).getByRole('button', { name: /new recording/i }));
 
     // The dialog opens on top of the Recordings page -- its own heading is
     // correctly hidden from the accessibility tree while the modal is open.
@@ -104,7 +105,8 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: /bad vilbel wetlands/i }));
     await user.click(await screen.findByText(/alpine meadow survey/i));
 
-    expect(await screen.findByText(/overview for alpine meadow survey/i)).toBeInTheDocument();
+    const main = screen.getByRole('main');
+    expect(await within(main).findByText('Alpine Meadow Survey')).toBeInTheDocument();
   });
 
   it('defaults to English when no language preference is stored', async () => {

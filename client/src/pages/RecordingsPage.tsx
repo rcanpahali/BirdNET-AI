@@ -28,12 +28,12 @@ export function RecordingsPage() {
   const { selectedProject } = useProjectContext();
   const { data: analyses, isLoading } = useAnalyses(selectedProject?.id);
   const [view, setView] = useState<ViewMode>('table');
-  const [justAnalyzed, setJustAnalyzed] = useState<{ filename: string; url: string } | null>(null);
+  const [justAnalyzed, setJustAnalyzed] = useState<{ id: number; filename: string; url: string } | null>(null);
   // Set alongside `justAnalyzed`, cleared once the newly analyzed row is found and
   // focused -- lets the effect below pick up the row as soon as the `analyses`
   // refetch (triggered by the mutation) actually contains it, however long that takes.
   const [autoFocusPending, setAutoFocusPending] = useState(false);
-  const { open, panel } = useContextPanel();
+  const { open, close, panel } = useContextPanel();
   const [selectedId, setSelectedId] = useState<number | null>(null);
   // The panel can close without RecordingsPage knowing why (its own "X" button, or
   // AppShell closing it on navigation) -- derive the highlighted row from whether
@@ -66,8 +66,7 @@ export function RecordingsPage() {
   }, [analyses, filters, cutoff]);
 
   const showDetails = (analysis: Analysis) => {
-    const audioSource =
-      justAnalyzed && justAnalyzed.filename === analysis.filename ? { url: justAnalyzed.url, filename: analysis.filename } : null;
+    const audioSource = justAnalyzed && justAnalyzed.id === analysis.id ? { url: justAnalyzed.url, filename: analysis.filename } : null;
 
     setSelectedId(analysis.id);
     open({
@@ -81,9 +80,12 @@ export function RecordingsPage() {
   // immediately (if the `analyses` refetch already landed while the dialog's
   // results were showing) or wait for `analyses` to update, since invalidating
   // the query on mutation success doesn't guarantee the refetch has resolved yet.
+  // Matched by `id`, not `filename` -- two analyses can share a filename (e.g.
+  // re-uploading the same file), and matching by name could latch onto a
+  // pre-existing row before the refetch bringing in the real new one lands.
   useEffect(() => {
     if (newRecordingOpen || !autoFocusPending || !justAnalyzed) return;
-    const match = analyses?.find((a) => a.filename === justAnalyzed.filename);
+    const match = analyses?.find((a) => a.id === justAnalyzed.id);
     if (!match) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- waiting on an external system (the `analyses` query cache catching up with the mutation) to converge, not deriving local state; the guards above make this fire at most once per successful analysis
     showDetails(match);
@@ -117,9 +119,14 @@ export function RecordingsPage() {
       <NewRecordingDialog
         open={newRecordingOpen}
         onOpenChange={setNewRecordingOpen}
-        onAnalyzed={(filename, url) => {
-          setJustAnalyzed({ filename, url });
+        onAnalyzed={(id, filename, url) => {
+          setJustAnalyzed({ id, filename, url });
           setAutoFocusPending(true);
+        }}
+        onDeleted={(id) => {
+          if (selectedId === id) close();
+          setAutoFocusPending(false);
+          setJustAnalyzed(null);
         }}
       />
 

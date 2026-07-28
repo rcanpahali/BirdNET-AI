@@ -20,7 +20,7 @@ export function ProjectSelector() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="max-w-56 justify-between font-normal">
+        <Button variant="outline" size="sm" className="max-w-80 justify-between font-normal">
           <span className="flex min-w-0 items-center gap-2">
             <FolderKanban className="size-4 shrink-0 text-muted-foreground" />
             <span className="truncate">{selectedProject.name}</span>

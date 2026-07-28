@@ -17,9 +17,11 @@ import { MOCK_USER } from '../../lib/mockData';
 interface UserMenuProps {
   triggerClassName?: string;
   align?: 'start' | 'end';
+  /** Always show the guest name text, instead of collapsing to the avatar below the `md` breakpoint. */
+  alwaysShowName?: boolean;
 }
 
-export function UserMenu({ triggerClassName, align = 'end' }: UserMenuProps) {
+export function UserMenu({ triggerClassName, align = 'end', alwaysShowName = false }: UserMenuProps) {
   const { t } = useTranslation();
 
   return (
@@ -29,7 +31,9 @@ export function UserMenu({ triggerClassName, align = 'end' }: UserMenuProps) {
           <Avatar className="size-7">
             <AvatarFallback>{MOCK_USER.initials}</AvatarFallback>
           </Avatar>
-          <span className="hidden truncate text-sm font-medium text-foreground md:inline">{t('topNav.guestName')}</span>
+          <span className={cn('truncate text-sm font-medium text-foreground', !alwaysShowName && 'hidden md:inline')}>
+            {t('topNav.guestName')}
+          </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align={align} className="w-64">

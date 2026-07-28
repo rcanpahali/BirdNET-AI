@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import type { Ref } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Download, Pause, Play, ZoomIn, ZoomOut } from 'lucide-react';
 import { Button } from '../ui/button';
@@ -18,6 +19,11 @@ export interface AudioSource {
   filename: string;
 }
 
+export interface AudioPlayerHandle {
+  /** Moves the scrubber to `seconds` without starting playback -- the user still presses play themselves. */
+  seekTo: (seconds: number) => void;
+}
+
 interface AudioPlayerProps {
   /**
    * Only set for audio that's still in memory from *this* upload/record
@@ -27,6 +33,7 @@ interface AudioPlayerProps {
    */
   source: AudioSource | null;
   detections?: AudioDetectionMarker[];
+  ref?: Ref<AudioPlayerHandle>;
 }
 
 const SPEEDS = [0.5, 1, 1.5, 2];
@@ -45,7 +52,7 @@ function placeholderPeaks(count: number): number[] {
   return Array.from({ length: count }, (_, i) => 0.15 + 0.25 * Math.abs(Math.sin(i * 0.4)));
 }
 
-export function AudioPlayer({ source, detections = [] }: AudioPlayerProps) {
+export function AudioPlayer({ source, detections = [], ref }: AudioPlayerProps) {
   const { t } = useTranslation();
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -116,6 +123,14 @@ export function AudioPlayer({ source, detections = [] }: AudioPlayerProps) {
     audioRef.current.currentTime = next;
     setCurrentTime(next);
   };
+
+  useImperativeHandle(ref, () => ({
+    seekTo: (seconds: number) => {
+      if (!audioRef.current) return;
+      audioRef.current.currentTime = seconds;
+      setCurrentTime(seconds);
+    },
+  }));
 
   const progressRatio = duration > 0 ? currentTime / duration : 0;
 

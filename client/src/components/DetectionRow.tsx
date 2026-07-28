@@ -5,9 +5,11 @@ import { Badge } from './ui/badge';
 interface DetectionRowProps {
   detection: Detection;
   variant?: 'card' | 'compact';
+  /** When set, the card becomes clickable (e.g. to seek an audio player to this detection's start time). */
+  onSelect?: (detection: Detection) => void;
 }
 
-export function DetectionRow({ detection, variant = 'card' }: DetectionRowProps) {
+export function DetectionRow({ detection, variant = 'card', onSelect }: DetectionRowProps) {
   const { t } = useTranslation();
   const {
     common_name: commonName,
@@ -29,8 +31,8 @@ export function DetectionRow({ detection, variant = 'card' }: DetectionRowProps)
     );
   }
 
-  return (
-    <div className="rounded-lg border border-border bg-card p-4 transition hover:border-primary/30 hover:shadow-sm">
+  const content = (
+    <>
       <div className="mb-2 flex items-center justify-between gap-3">
         <h3 className="font-semibold text-foreground">{commonName}</h3>
         <Badge variant="success">{(confidence * 100).toFixed(1)}%</Badge>
@@ -39,6 +41,20 @@ export function DetectionRow({ detection, variant = 'card' }: DetectionRowProps)
       <div className="text-xs text-muted-foreground/80">
         {t('results.timePrefix')} {startTime.toFixed(1)}s - {endTime.toFixed(1)}s
       </div>
-    </div>
+    </>
   );
+
+  if (onSelect) {
+    return (
+      <button
+        type="button"
+        onClick={() => onSelect(detection)}
+        className="w-full rounded-lg border border-border bg-card p-4 text-left transition hover:border-primary/30 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return <div className="rounded-lg border border-border bg-card p-4 transition hover:border-primary/30 hover:shadow-sm">{content}</div>;
 }

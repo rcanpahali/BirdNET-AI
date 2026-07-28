@@ -58,12 +58,11 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "overviewFor": "Overview for {{name}}",
+    "statSelectedProject": "Selected project",
     "statTotalRecordings": "Total recordings",
     "statActiveLocations": "Active locations",
     "statSpeciesDetected": "Species detected",
     "statBiodiversityIndex": "Biodiversity index",
-    "statBiodiversityHint": "Shannon index (H′) over detected species",
     "statRecordingHours": "Recording hours",
     "statRecentActivity": "Recent activity",
     "statRecentActivityHint": "Recordings in the last 7 days",
@@ -77,6 +76,7 @@
   },
   "recordings": {
     "new": "New recording",
+    "newCardSubtitle": "Start a new bird recording session",
     "label": "Recording #{{id}}",
     "page": {
       "title": "Recordings",
@@ -121,6 +121,8 @@
       "avgConfidence": "Avg. confidence",
       "speciesDetectedLabel": "Species detected",
       "noSpeciesAtThreshold": "No species detected at the current confidence threshold.",
+      "speciesBadgeCount_one": "{{count}} detection",
+      "speciesBadgeCount_other": "{{count}} detections",
       "recordingAudioLabel": "Recording audio",
       "recordingQualityLabel": "Recording quality"
     }
@@ -218,7 +220,8 @@
     }
   },
   "sidebar": {
-    "poweredBy": "BirdNET Analyzer by the Cornell Lab of Ornithology and Chemnitz University of Technology"
+    "poweredBy": "BirdNET Analyzer by the Cornell Lab of Ornithology and Chemnitz University of Technology",
+    "openMenu": "Open menu"
   },
   "settings": {
     "description": "Account, project, and platform preferences.",
@@ -283,6 +286,10 @@
     "detectionSuffix_other": "detections in",
     "noDetections": "No bird sounds detected with the current confidence threshold.",
     "confidencePrefix": "Confidence:",
-    "timePrefix": "Time:"
+    "timePrefix": "Time:",
+    "keepOrDeletePrompt": "No species were detected. You can delete this recording or keep it in your history.",
+    "delete": "Delete",
+    "deleting": "Deleting…",
+    "keep": "Keep"
   }
 }

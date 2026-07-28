@@ -58,12 +58,11 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "overviewFor": "Übersicht für {{name}}",
+    "statSelectedProject": "Ausgewähltes Projekt",
     "statTotalRecordings": "Aufnahmen gesamt",
     "statActiveLocations": "Aktive Standorte",
     "statSpeciesDetected": "Erkannte Arten",
     "statBiodiversityIndex": "Biodiversitätsindex",
-    "statBiodiversityHint": "Shannon-Index (H′) der erkannten Arten",
     "statRecordingHours": "Aufnahmestunden",
     "statRecentActivity": "Kürzliche Aktivität",
     "statRecentActivityHint": "Aufnahmen in den letzten 7 Tagen",
@@ -77,6 +76,7 @@
   },
   "recordings": {
     "new": "Neue Aufnahme",
+    "newCardSubtitle": "Eine neue Vogelaufnahme starten",
     "label": "Aufnahme #{{id}}",
     "page": {
       "title": "Aufnahmen",
@@ -121,6 +121,8 @@
       "avgConfidence": "Ø Konfidenz",
       "speciesDetectedLabel": "Erkannte Arten",
       "noSpeciesAtThreshold": "Bei der aktuellen Konfidenzschwelle wurden keine Arten erkannt.",
+      "speciesBadgeCount_one": "{{count}} Erkennung",
+      "speciesBadgeCount_other": "{{count}} Erkennungen",
       "recordingAudioLabel": "Audioaufnahme",
       "recordingQualityLabel": "Aufnahmequalität"
     }
@@ -218,7 +220,8 @@
     }
   },
   "sidebar": {
-    "poweredBy": "BirdNET Analyzer von der Cornell Lab of Ornithology und der Technischen Universität Chemnitz"
+    "poweredBy": "BirdNET Analyzer von der Cornell Lab of Ornithology und der Technischen Universität Chemnitz",
+    "openMenu": "Menü öffnen"
   },
   "settings": {
     "description": "Konto-, Projekt- und Plattformeinstellungen.",
@@ -283,6 +286,10 @@
     "detectionSuffix_other": "Erkennungen in",
     "noDetections": "Bei der aktuellen Konfidenzschwelle wurden keine Vogellaute erkannt.",
     "confidencePrefix": "Konfidenz:",
-    "timePrefix": "Zeit:"
+    "timePrefix": "Zeit:",
+    "keepOrDeletePrompt": "Es wurden keine Arten erkannt. Sie können diese Aufnahme löschen oder in Ihrem Verlauf behalten.",
+    "delete": "Löschen",
+    "deleting": "Wird gelöscht…",
+    "keep": "Behalten"
   }
 }

@@ -36,6 +36,10 @@ export async function updateAnalysis(id: number, input: UpdateAnalysisInput): Pr
   return data;
 }
 
+export async function deleteAnalysis(id: number): Promise<void> {
+  await apiClient.delete(`/analyses/${id}`);
+}
+
 export async function fetchProjects(): Promise<Project[]> {
   const { data } = await apiClient.get<Project[]>('/projects');
   return data;

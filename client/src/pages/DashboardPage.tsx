@@ -5,6 +5,7 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import {
   Activity,
   AudioLines,
+  FolderKanban,
   Leaf,
   MapPin as MapPinIcon,
   Sprout,
@@ -96,13 +97,10 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={t('dashboard.title')}
-        description={t('dashboard.overviewFor', { name: selectedProject?.name ?? '' })}
-        actions={<NewRecordingButton />}
-      />
+      <PageHeader title={t('dashboard.title')} actions={<NewRecordingButton className="lg:hidden" />} />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatCard icon={FolderKanban} label={t('dashboard.statSelectedProject')} value={selectedProject?.name ?? '—'} />
         <StatCard icon={AudioLines} label={t('dashboard.statTotalRecordings')} value={totalRecordings(list)} loading={isLoading} />
         <StatCard icon={MapPinIcon} label={t('dashboard.statActiveLocations')} value={activeLocationCount(list)} loading={isLoading} accent="sky" />
         <StatCard icon={Sprout} label={t('dashboard.statSpeciesDetected')} value={speciesDetectedCount(list)} loading={isLoading} accent="success" />
@@ -110,7 +108,6 @@ export function DashboardPage() {
           icon={Leaf}
           label={t('dashboard.statBiodiversityIndex')}
           value={biodiversity ?? '—'}
-          hint={t('dashboard.statBiodiversityHint')}
           loading={isLoading}
           accent="success"
         />

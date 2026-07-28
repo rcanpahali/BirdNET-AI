@@ -10,7 +10,12 @@ import { renderWithProviders } from '../../test/renderWithProviders';
 vi.mock('../../api/client', async () => {
   const actual = await vi.importActual<typeof import('../../api/client')>('../../api/client');
   const { TEST_PROJECT } = await import('../../test/fixtures');
-  return { ...actual, analyzeAudio: vi.fn(), fetchProjects: vi.fn().mockResolvedValue([TEST_PROJECT]) };
+  return {
+    ...actual,
+    analyzeAudio: vi.fn(),
+    deleteAnalysis: vi.fn(),
+    fetchProjects: vi.fn().mockResolvedValue([TEST_PROJECT]),
+  };
 });
 
 vi.mock('../../lib/geolocation', () => ({
@@ -44,9 +49,10 @@ describe('NewRecordingDialog', () => {
   beforeEach(() => {
     vi.mocked(geolocation.requestCurrentPosition).mockReset().mockResolvedValue(null);
     vi.mocked(apiClient.analyzeAudio).mockReset();
+    vi.mocked(apiClient.deleteAnalysis).mockReset().mockResolvedValue(undefined);
   });
 
-  it('uploads a file and shows the analysis results', async () => {
+  it('closes the upload dialog and opens the analysis results dialog on success', async () => {
     vi.mocked(apiClient.analyzeAudio).mockResolvedValue({
       filename: 'clip.wav',
       detection_count: 1,
@@ -60,7 +66,9 @@ describe('NewRecordingDialog', () => {
 
     await uploadAndSubmit(user);
 
-    expect(await screen.findByText('Robin')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /analysis results/i })).toBeInTheDocument();
+    expect(screen.getByText('Robin')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /analyze audio/i })).not.toBeInTheDocument();
     expect(apiClient.analyzeAudio).toHaveBeenCalledTimes(1);
   });
 
@@ -93,9 +101,22 @@ describe('NewRecordingDialog', () => {
     await uploadAndSubmit(user);
     expect(await screen.findByText(/no bird sounds detected/i)).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /done/i }));
+    await user.click(screen.getByRole('button', { name: /^done$/i }));
     await user.click(screen.getByRole('button', { name: /^reopen$/i }));
 
     expect(screen.getByRole('button', { name: /analyze audio/i })).toBeDisabled();
+  });
+
+  it('wires the persisted id through to the results dialog so Delete removes the right analysis', async () => {
+    vi.mocked(apiClient.analyzeAudio).mockResolvedValue({ filename: 'clip.wav', detection_count: 0, detections: [], id: 42 });
+
+    const user = userEvent.setup();
+    renderWithProviders(<ControlledDialog />);
+
+    await uploadAndSubmit(user);
+
+    await user.click(await screen.findByRole('button', { name: /^delete$/i }));
+
+    await waitFor(() => expect(apiClient.deleteAnalysis).toHaveBeenCalledWith(42));
   });
 });

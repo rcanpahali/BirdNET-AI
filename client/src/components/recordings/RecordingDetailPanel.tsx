@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Analysis } from '@birdnet/types';
-import { CheckCircle2, MapPin, Tag as TagIcon, X, XCircle } from 'lucide-react';
+import { Bird, CheckCircle2, MapPin, Sparkles, Tag as TagIcon, X, XCircle } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { Separator } from '../ui/separator';
 import { Label } from '../ui/label';
@@ -12,6 +12,7 @@ import { PlaceholderBadge } from '../shared/PlaceholderBadge';
 import { AudioPlayer } from '../audio/AudioPlayer';
 import type { AudioSource } from '../audio/AudioPlayer';
 import { averageConfidence, formatConfidence, formatDateTime, formatDuration, formatLocation } from '../../lib/format';
+import { speciesDistribution } from '../../lib/analytics';
 import { useUpdateAnalysis } from '../../hooks/useUpdateAnalysis';
 
 interface RecordingDetailPanelProps {
@@ -114,7 +115,7 @@ function RecordingMetadataFields({ analysis }: { analysis: Analysis }) {
 export function RecordingDetailPanel({ analysis, audioSource = null }: RecordingDetailPanelProps) {
   const { t } = useTranslation();
   const location = formatLocation(analysis, 5);
-  const uniqueSpecies = [...new Map(analysis.detections.map((d) => [d.common_name, d])).values()];
+  const speciesCounts = speciesDistribution([analysis]);
   const avgConfidence = averageConfidence(analysis.detections);
 
   return (
@@ -150,7 +151,9 @@ export function RecordingDetailPanel({ analysis, audioSource = null }: Recording
       <Separator />
 
       <div className="space-y-2">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t('recordings.detail.aiDetectionSummary')}</p>
+        <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <Sparkles className="size-3.5" /> {t('recordings.detail.aiDetectionSummary')}
+        </p>
         <div className="grid grid-cols-3 gap-3">
           <div className="rounded-lg border border-border bg-muted/40 p-3">
             <p className="text-lg font-semibold text-foreground">{analysis.detectionCount}</p>
@@ -168,14 +171,17 @@ export function RecordingDetailPanel({ analysis, audioSource = null }: Recording
       </div>
 
       <div className="space-y-2">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t('recordings.detail.speciesDetectedLabel')}</p>
-        {uniqueSpecies.length === 0 ? (
+        <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <Bird className="size-3.5" /> {t('recordings.detail.speciesDetectedLabel')}
+        </p>
+        {speciesCounts.length === 0 ? (
           <p className="text-muted-foreground">{t('recordings.detail.noSpeciesAtThreshold')}</p>
         ) : (
           <div className="flex flex-wrap gap-1.5">
-            {uniqueSpecies.map((detection) => (
-              <Badge key={detection.common_name} variant="success">
-                {detection.common_name}
+            {speciesCounts.map((species) => (
+              <Badge key={species.commonName} variant="success">
+                <span>{species.commonName}</span>
+                <span className="opacity-70">· {t('recordings.detail.speciesBadgeCount', { count: species.count })}</span>
               </Badge>
             ))}
           </div>

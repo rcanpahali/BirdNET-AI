@@ -12,6 +12,8 @@ export interface AnalyzerResponse {
   detections: Detection[];
   analysis_time_seconds?: number;
   duration_seconds?: number;
+  /** Set by Express once the analysis is persisted; absent on the raw upstream FastAPI payload. */
+  id?: number;
 }
 
 export type AnalysisStatus = 'completed' | 'failed';

@@ -67,7 +67,7 @@ export function AppShell() {
         <Sidebar />
         <ResizablePanelGroup direction="horizontal" className="flex-1">
           <ResizablePanel id="main" order={1} minSize={45} className="!overflow-y-auto">
-            <div className="mx-auto min-h-full max-w-[1700px] px-6 py-6 lg:px-8">
+            <div role="main" className="mx-auto min-h-full max-w-[1700px] px-6 py-6 lg:px-8">
               <Outlet />
             </div>
           </ResizablePanel>

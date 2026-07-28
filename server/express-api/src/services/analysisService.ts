@@ -1,6 +1,7 @@
 import type { Result } from 'neverthrow';
 import type { Analysis, AnalysisStatus, Detection } from '@birdnet/types';
 import {
+  deleteAnalysis as deleteAnalysisRow,
   findAnalysis,
   listAnalysesWithDetections,
   saveAnalysis,
@@ -41,4 +42,8 @@ export function updateAnalysis(
   input: { tags?: string[]; notes?: string }
 ): Result<Analysis, DomainError> {
   return updateAnalysisMetadata(id, input);
+}
+
+export function deleteAnalysis(id: number): Result<void, DomainError> {
+  return deleteAnalysisRow(id);
 }

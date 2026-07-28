@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as apiClient from '../api/client';
@@ -16,6 +16,7 @@ vi.mock('../api/client', async () => {
     fetchAnalyses: vi.fn(),
     fetchProjects: vi.fn().mockResolvedValue([TEST_PROJECT]),
     analyzeAudio: vi.fn(),
+    deleteAnalysis: vi.fn(),
   };
 });
 
@@ -50,6 +51,7 @@ describe('RecordingsPage', () => {
   beforeEach(() => {
     vi.mocked(apiClient.fetchAnalyses).mockReset();
     vi.mocked(apiClient.analyzeAudio).mockReset();
+    vi.mocked(apiClient.deleteAnalysis).mockReset();
     vi.mocked(geolocation.requestCurrentPosition).mockReset().mockResolvedValue(null);
   });
 
@@ -105,6 +107,7 @@ describe('RecordingsPage', () => {
       detections: [
         { common_name: 'Robin', scientific_name: 'Erithacus rubecula', confidence: 0.8, start_time: 0, end_time: 3 },
       ],
+      id: 2,
     });
 
     const user = userEvent.setup();
@@ -118,11 +121,42 @@ describe('RecordingsPage', () => {
     await user.upload(screen.getByLabelText(/audio file/i), file);
     await user.click(screen.getByRole('button', { name: /analyze audio/i }));
 
-    const dialog = screen.getByRole('dialog');
-    expect(await within(dialog).findByText('Robin')).toBeInTheDocument();
+    const dialog = await screen.findByRole('dialog', { name: /analysis results/i });
+    expect(within(dialog).getByText('Robin')).toBeInTheDocument();
     await user.click(within(dialog).getByRole('button', { name: /done/i }));
 
     expect(await screen.findByRole('heading', { name: 'Recording #2' })).toBeInTheDocument();
     expect(await screen.findByRole('row', { name: /Recording #2/ })).toHaveAttribute('data-state', 'selected');
+  });
+
+  it('closes the detail panel when the just-analyzed recording is deleted from the results dialog', async () => {
+    const existing = buildAnalysis({ id: 1, filename: 'silence.wav', createdAt: '2026-07-20 10:00:00' });
+    const created = buildAnalysis({ id: 2, filename: 'clip.wav', createdAt: '2026-07-21 09:00:00', detectionCount: 0 });
+
+    vi.mocked(apiClient.fetchAnalyses).mockResolvedValueOnce([existing]).mockResolvedValue([created, existing]);
+    vi.mocked(apiClient.analyzeAudio).mockResolvedValue({ filename: 'clip.wav', detection_count: 0, detections: [], id: 2 });
+    vi.mocked(apiClient.deleteAnalysis).mockResolvedValue(undefined);
+
+    const user = userEvent.setup();
+    renderRecordingsPage();
+
+    expect(await screen.findByRole('cell', { name: 'Recording #1' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /new recording/i }));
+    await user.click(screen.getByRole('radio', { name: /^upload$/i }));
+    const file = new File(['fake audio content'], 'clip.wav', { type: 'audio/wav' });
+    await user.upload(screen.getByLabelText(/audio file/i), file);
+    await user.click(screen.getByRole('button', { name: /analyze audio/i }));
+
+    // The detail panel auto-opens behind the modal (Radix marks background content
+    // aria-hidden while a Dialog is open), which also blanks its computed accessible
+    // name -- so it's checked by text/selector here, not an accessible-name role query.
+    const dialog = await screen.findByRole('dialog', { name: /analysis results/i });
+    expect(await screen.findByText('Recording #2', { selector: 'h2' })).toBeInTheDocument();
+
+    await user.click(within(dialog).getByRole('button', { name: /^delete$/i }));
+
+    await waitFor(() => expect(apiClient.deleteAnalysis).toHaveBeenCalledWith(2));
+    expect(screen.queryByText('Recording #2', { selector: 'h2' })).not.toBeInTheDocument();
   });
 });

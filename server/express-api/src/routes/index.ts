@@ -1,6 +1,6 @@
 import type { RequestHandler } from 'express';
 import { Router } from 'express';
-import { listAnalysesController, updateAnalysisController } from '../controllers/analyses.controller';
+import { deleteAnalysisController, listAnalysesController, updateAnalysisController } from '../controllers/analyses.controller';
 import { analyzeController } from '../controllers/analyze.controller';
 import { healthController, rootController } from '../controllers/health.controller';
 import {
@@ -22,6 +22,7 @@ router.get('/health', healthController);
 router.post('/analyze', upload.single('file') as unknown as RequestHandler, analyzeController);
 router.get('/analyses', listAnalysesController);
 router.patch('/analyses/:id', updateAnalysisController);
+router.delete('/analyses/:id', deleteAnalysisController);
 
 router.get('/projects', listProjectsController);
 router.post('/projects', createProjectController);

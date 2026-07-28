@@ -6,6 +6,7 @@ import { cn } from '../../lib/utils';
 import { Separator } from '../ui/separator';
 import { LanguageToggle } from './LanguageToggle';
 import { UserMenu } from './UserMenu';
+import { NewRecordingCard } from './NewRecordingCard';
 
 type NavLabelKey = 'nav.dashboard' | 'nav.recordings' | 'nav.map' | 'nav.statistics' | 'nav.projects' | 'nav.settings';
 
@@ -25,12 +26,13 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/settings', labelKey: 'nav.settings', icon: Settings },
 ];
 
-function NavRow({ item }: { item: NavItem }) {
+function NavRow({ item, onNavigate }: { item: NavItem; onNavigate?: () => void }) {
   const { t } = useTranslation();
   return (
     <NavLink
       to={item.to}
       end={item.end}
+      onClick={onNavigate}
       className={({ isActive }) =>
         cn(
           'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
@@ -44,21 +46,26 @@ function NavRow({ item }: { item: NavItem }) {
   );
 }
 
-export function Sidebar() {
+/** Nav content shared between the desktop `Sidebar` and the mobile `MobileNav` sheet. */
+export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useTranslation();
 
   return (
-    <aside className="hidden w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar lg:flex">
+    <>
+      <div className="px-3 pt-3">
+        <NewRecordingCard onNavigate={onNavigate} />
+      </div>
+
       <nav aria-label={t('nav.primary')} className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
         {NAV_ITEMS.map((item) => (
-          <NavRow key={item.to} item={item} />
+          <NavRow key={item.to} item={item} onNavigate={onNavigate} />
         ))}
       </nav>
 
       <div className="px-3 py-3">
         <Separator className="mb-3 bg-sidebar-border" />
         <div className="space-y-3">
-          <UserMenu triggerClassName="w-full justify-start" align="start" />
+          <UserMenu triggerClassName="w-full justify-start" align="start" alwaysShowName />
           <LanguageToggle variant="dropdown" />
           <a
             href="https://birdnet.cornell.edu/analyzer/"
@@ -70,6 +77,14 @@ export function Sidebar() {
           </a>
         </div>
       </div>
+    </>
+  );
+}
+
+export function Sidebar() {
+  return (
+    <aside className="hidden w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar lg:flex">
+      <SidebarNav />
     </aside>
   );
 }

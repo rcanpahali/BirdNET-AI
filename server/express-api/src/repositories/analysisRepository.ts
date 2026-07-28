@@ -153,6 +153,12 @@ export function findAnalysis(id: number): Result<Analysis, DomainError> {
   return ok(toAnalysis(row));
 }
 
+export function deleteAnalysis(id: number): Result<void, DomainError> {
+  const result = db.delete(analyses).where(eq(analyses.id, id)).run();
+  if (result.changes === 0) return err(notFoundError(`Analysis ${id} not found`));
+  return ok(undefined);
+}
+
 export function updateAnalysisMetadata(id: number, input: UpdateAnalysisMetadataInput): Result<Analysis, DomainError> {
   const values: Partial<{ tags: string[]; notes: string | null }> = {};
   if (input.tags !== undefined) values.tags = input.tags;

@@ -222,7 +222,7 @@ describe('POST /analyze', () => {
       .field('min_conf', '0.4');
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual(upstreamAnalyzeResponse);
+    expect(response.body).toEqual({ ...upstreamAnalyzeResponse, id: expect.any(Number) });
   });
 
   it('persists the real analysis duration reported by the analyzer', async () => {
@@ -379,6 +379,28 @@ describe('PATCH /analyses/:id', () => {
     const response = await request(app).patch('/analyses/999999').send({ notes: 'test' });
 
     expect(response.status).toBe(404);
+  });
+});
+
+describe('DELETE /analyses/:id', () => {
+  it('deletes an analysis and its detections', async () => {
+    const analyzeResponse = await request(app)
+      .post('/analyze')
+      .field('project_id', String(projectId))
+      .attach('file', Buffer.from('RIFF....WAVEfmt '), 'clip.wav');
+
+    const del = await request(app).delete(`/analyses/${analyzeResponse.body.id}`);
+    expect(del.status).toBe(204);
+
+    const list = await request(app).get('/analyses').query({ projectId });
+    expect(list.body).toEqual([]);
+  });
+
+  it('404s when deleting an analysis that does not exist', async () => {
+    const response = await request(app).delete('/analyses/999999');
+
+    expect(response.status).toBe(404);
+    expect(response.body.error).toBe('not_found');
   });
 });
 

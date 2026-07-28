@@ -73,7 +73,7 @@ export async function analyzeController(req: Request, res: Response): Promise<vo
 
     const result = analysisResult.value;
 
-    await recordAnalysis({
+    const id = await recordAnalysis({
       projectId,
       filename: file.originalname,
       mimetype: file.mimetype,
@@ -86,7 +86,7 @@ export async function analyzeController(req: Request, res: Response): Promise<vo
       detections: result.detections,
     });
 
-    res.json(result);
+    res.json({ ...result, id });
   } finally {
     if (file) {
       try {
