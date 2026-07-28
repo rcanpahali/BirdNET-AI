@@ -1,8 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "leaflet/dist/leaflet.css";
+/* Only the structural stylesheet -- cluster/pin colors come from custom divIcons in MapView.tsx,
+   so MarkerCluster.Default.css's rgba blob colors are never applied. */
 @import "leaflet.markercluster/dist/MarkerCluster.css";
-@import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 
 /*
  * Design tokens for the BirdNET environmental intelligence platform.
@@ -133,6 +134,16 @@ body {
   color: var(--color-foreground);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Tailwind's Preflight resets buttons to `cursor: default` to match native
+   browser behavior, but that makes every button/toggle/tab in the app look
+   unclickable. Restore the pointer cursor app-wide instead of adding
+   `cursor-pointer` to every button one by one. */
+@layer base {
+  button:not(:disabled) {
+    cursor: pointer;
+  }
 }
 
 /* Leaflet renders its panes with inline z-index; keep it below our UI chrome

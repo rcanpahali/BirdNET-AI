@@ -1,12 +1,22 @@
 # BirdNET Analyzer
 
-A web application for analyzing bird sounds using the BirdNET AI model. Upload or record audio to detect bird species with confidence scores and time ranges, and browse past analyses.
+A web application for analyzing bird sounds using the BirdNET AI model. Upload or record audio to detect bird species with confidence scores and time ranges, and browse past analyses. In the product itself, the app is branded **Singwarte**.
+
+## About the Name
+
+> **Singwarte** _noun, feminine (die Singwarte) · genitive -, plural -n_
+> _Ornithology_: the elevated perch — a branch, wire, or treetop — from which a bird sings to advertise its territory and attract a mate; a song post.
+
+Every recording in the app captures a bird announcing itself from its Singwarte, and each one is GPS-tagged to the spot where it was made — in effect, a map of the song posts the recorded birds are singing from. It's also a deliberate step away from naming the product after the underlying ML model: "Singwarte" isn't just "BirdNET" restated as a brand.
+
+"Singwarte" is the product name across every deployment. The city and organization name shown next to it in the top nav (`VITE_CITY_NAME`, `VITE_ORG_NAME` — see [Configuration](#configuration)) identify the specific instance, so other towns can run their own copy of the same free tool under their own local identity without forking the brand itself.
 
 ## References
 
 - [BirdNET-Analyzer](https://github.com/birdnet-team/BirdNET-Analyzer) – upstream analyzer and model definitions.
 - [birdnetlib](https://pypi.org/project/birdnetlib/) – Python interface used to drive the analyzer.
 - [TensorFlow](https://www.tensorflow.org/) – machine learning runtime leveraged by birdnetlib/BirdNET.
+- BirdNET itself is developed by the Cornell Lab of Ornithology and Chemnitz University of Technology; the in-app sidebar links to [birdnet.cornell.edu/analyzer](https://birdnet.cornell.edu/analyzer/) for attribution.
 
 ## Architecture
 

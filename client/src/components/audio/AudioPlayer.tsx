@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Download, Pause, Play, ZoomIn, ZoomOut } from 'lucide-react';
 import { Button } from '../ui/button';
 import { ToggleGroup, ToggleGroupItem } from '../ui/toggle-group';
@@ -45,6 +46,7 @@ function placeholderPeaks(count: number): number[] {
 }
 
 export function AudioPlayer({ source, detections = [] }: AudioPlayerProps) {
+  const { t } = useTranslation();
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -170,7 +172,7 @@ export function AudioPlayer({ source, detections = [] }: AudioPlayerProps) {
             variant="ghost"
             disabled={disabled || zoomIndex === 0}
             onClick={() => setZoomIndex((z) => Math.max(0, z - 1))}
-            aria-label="Zoom out waveform"
+            aria-label={t('audio.zoomOutWaveform')}
           >
             <ZoomOut className="size-4" />
           </Button>
@@ -180,7 +182,7 @@ export function AudioPlayer({ source, detections = [] }: AudioPlayerProps) {
             variant="ghost"
             disabled={disabled || zoomIndex === ZOOM_LEVELS.length - 1}
             onClick={() => setZoomIndex((z) => Math.min(ZOOM_LEVELS.length - 1, z + 1))}
-            aria-label="Zoom in waveform"
+            aria-label={t('audio.zoomInWaveform')}
           >
             <ZoomIn className="size-4" />
           </Button>
@@ -190,7 +192,7 @@ export function AudioPlayer({ source, detections = [] }: AudioPlayerProps) {
           {disabled ? (
             <Download className="size-4" />
           ) : (
-            <a href={source.url} download={source.filename} aria-label="Download recording">
+            <a href={source.url} download={source.filename} aria-label={t('audio.downloadRecording')}>
               <Download className="size-4" />
             </a>
           )}
@@ -207,7 +209,7 @@ export function AudioPlayer({ source, detections = [] }: AudioPlayerProps) {
           }}
           className="relative flex h-16 items-end gap-px rounded-md bg-background px-1 py-1 disabled:cursor-not-allowed"
           style={{ width: `${100 * zoom}%`, minWidth: '100%' }}
-          aria-label="Seek within recording"
+          aria-label={t('audio.seekWithinRecording')}
         >
           {displayPeaks.map((peak, index) => {
             const played = !disabled && index / BAR_COUNT <= progressRatio;
@@ -240,8 +242,8 @@ export function AudioPlayer({ source, detections = [] }: AudioPlayerProps) {
 
       {disabled && (
         <div className="flex items-center justify-between gap-2">
-          <p className="text-xs text-muted-foreground">Audio isn&apos;t stored for past recordings yet -- playback is unavailable.</p>
-          <PlaceholderBadge label="Waveform placeholder" note="Real waveform + playback only works for recordings analyzed in this session." />
+          <p className="text-xs text-muted-foreground">{t('audio.notStoredNotice')}</p>
+          <PlaceholderBadge label={t('audio.waveformPlaceholder')} note={t('audio.waveformPlaceholderNote')} />
         </div>
       )}
     </div>

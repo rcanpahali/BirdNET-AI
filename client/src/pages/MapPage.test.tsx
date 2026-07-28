@@ -2,15 +2,16 @@ import type { ReactNode } from 'react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Analysis } from '@birdnet/types';
 import * as apiClient from '../api/client';
 import { MapPage } from './MapPage';
 import { ContextPanelSlot } from '../components/layout/ContextPanelSlot';
 import { renderWithProviders } from '../test/renderWithProviders';
+import { buildAnalysis } from '../test/fixtures';
 
 vi.mock('../api/client', async () => {
   const actual = await vi.importActual<typeof import('../api/client')>('../api/client');
-  return { ...actual, fetchAnalyses: vi.fn() };
+  const { TEST_PROJECT } = await import('../test/fixtures');
+  return { ...actual, fetchAnalyses: vi.fn(), fetchProjects: vi.fn().mockResolvedValue([TEST_PROJECT]) };
 });
 
 // Real Leaflet needs real browser layout (getBoundingClientRect, etc.) that jsdom
@@ -38,7 +39,9 @@ vi.mock('react-leaflet', () => ({
   ),
   Popup: ({ children }: { children: ReactNode }) => <div data-testid="popup">{children}</div>,
   Tooltip: ({ children }: { children: ReactNode }) => <div data-testid="tooltip">{children}</div>,
-  useMap: () => ({ fitBounds: vi.fn() }),
+  // Also stands in for MapResizeHandler's `useMap()` call, which needs
+  // `getContainer`/`invalidateSize` alongside FitToMarkers' `fitBounds`.
+  useMap: () => ({ fitBounds: vi.fn(), getContainer: () => document.createElement('div'), invalidateSize: vi.fn() }),
 }));
 
 vi.mock('react-leaflet-cluster', () => ({
@@ -56,33 +59,22 @@ function renderMapPage() {
   );
 }
 
-const withLocation: Analysis = {
+const withLocation = buildAnalysis({
   id: 1,
   filename: 'robin.wav',
-  mimetype: 'audio/wav',
-  fileSize: 1000,
   lat: 50.18,
   lon: 8.74,
-  minConf: 0.25,
-  createdAt: '2026-07-20 10:00:00',
   detectionCount: 1,
   detections: [
     { common_name: 'Robin', scientific_name: 'Erithacus rubecula', confidence: 0.8, start_time: 0, end_time: 3 },
   ],
-};
+});
 
-const withoutLocation: Analysis = {
+const withoutLocation = buildAnalysis({
   id: 2,
   filename: 'unknown.wav',
-  mimetype: 'audio/wav',
-  fileSize: 500,
-  lat: null,
-  lon: null,
-  minConf: null,
   createdAt: '2026-07-20 11:00:00',
-  detectionCount: 0,
-  detections: [],
-};
+});
 
 describe('MapPage', () => {
   beforeEach(() => {
@@ -118,7 +110,7 @@ describe('MapPage', () => {
     const marker = await screen.findByTestId('marker');
     await user.click(marker);
 
-    expect(await screen.findByRole('heading', { name: 'robin.wav' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Recording #1' })).toBeInTheDocument();
     expect(screen.getByText('Robin')).toBeInTheDocument();
     expect(screen.getByText('50.18000, 8.74000')).toBeInTheDocument();
   });

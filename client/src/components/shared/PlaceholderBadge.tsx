@@ -1,7 +1,7 @@
+import { useTranslation } from 'react-i18next';
 import { FlaskConical } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
-import { PLACEHOLDER_NOTE } from '../../lib/mockData';
 
 interface PlaceholderBadgeProps {
   label?: string;
@@ -14,16 +14,17 @@ interface PlaceholderBadgeProps {
  * feature. Always pair real and placeholder metrics with this badge rather
  * than letting them look identical.
  */
-export function PlaceholderBadge({ label = 'Sample data', note = PLACEHOLDER_NOTE }: PlaceholderBadgeProps) {
+export function PlaceholderBadge({ label, note }: PlaceholderBadgeProps) {
+  const { t } = useTranslation();
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <Badge variant="placeholder">
           <FlaskConical />
-          {label}
+          {label ?? t('common.sampleData')}
         </Badge>
       </TooltipTrigger>
-      <TooltipContent>{note}</TooltipContent>
+      <TooltipContent>{note ?? t('common.placeholderNoteDefault')}</TooltipContent>
     </Tooltip>
   );
 }

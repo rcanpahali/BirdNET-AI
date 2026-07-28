@@ -1,14 +1,23 @@
 import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { FolderPlus } from 'lucide-react';
 import { TopNav } from './TopNav';
 import { Sidebar } from './Sidebar';
 import { ContextPanelSlot } from './ContextPanelSlot';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '../ui/resizable';
+import { Skeleton } from '../ui/skeleton';
+import { EmptyState } from '../shared/EmptyState';
+import { Button } from '../ui/button';
+import { NewProjectDialog } from '../projects/NewProjectDialog';
 import { useContextPanel } from '../../context/ContextPanelContext';
+import { useProjectContext } from '../../context/ProjectContext';
 
 export function AppShell() {
+  const { t } = useTranslation();
   const location = useLocation();
   const { panel, close } = useContextPanel();
+  const { isLoading, selectedProject } = useProjectContext();
 
   // The context panel's content is tied to a selection (a recording, a
   // marker, a project) that's specific to one page -- close it on
@@ -18,6 +27,38 @@ export function AppShell() {
     close();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- close identity is stable via useMemo
   }, [location.pathname]);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen flex-col gap-4 p-6">
+        <Skeleton className="h-14 w-full" />
+        <Skeleton className="flex-1 w-full" />
+      </div>
+    );
+  }
+
+  // Recordings can't exist outside a project, so every page downstream of
+  // this gate can safely assume `selectedProject` is non-null.
+  if (!selectedProject) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <EmptyState
+          icon={FolderPlus}
+          title={t('appShell.createFirstProjectTitle')}
+          description={t('appShell.createFirstProjectDescription')}
+          action={
+            <NewProjectDialog
+              trigger={
+                <Button>
+                  <FolderPlus /> {t('projects.new')}
+                </Button>
+              }
+            />
+          }
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen flex-col overflow-hidden">

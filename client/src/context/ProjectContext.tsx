@@ -1,39 +1,48 @@
-import { createContext, useContext, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { DEFAULT_PROJECT_ID, MOCK_PROJECTS } from '../lib/mockData';
-import type { MockProject } from '../lib/mockData';
+import type { Project } from '@birdnet/types';
+import { useProjects } from '../hooks/useProjects';
+
+const SELECTED_PROJECT_STORAGE_KEY = 'birdnet.selectedProjectId';
 
 interface ProjectContextValue {
-  projects: MockProject[];
-  selectedProject: MockProject;
-  selectProject: (id: string) => void;
-  /** Local-only: not persisted, no backend endpoint exists yet. */
-  addProject: (project: Omit<MockProject, 'isSample'>) => void;
-  /** Local-only: not persisted, no backend endpoint exists yet. */
-  updateProject: (id: string, updates: Pick<MockProject, 'name' | 'description' | 'targetLocation'>) => void;
+  projects: Project[];
+  isLoading: boolean;
+  selectedProject: Project | null;
+  selectProject: (id: number) => void;
 }
 
 const ProjectContext = createContext<ProjectContextValue | null>(null);
 
 export function ProjectProvider({ children }: { children: ReactNode }) {
-  const [projects, setProjects] = useState<MockProject[]>(MOCK_PROJECTS);
-  const [selectedId, setSelectedId] = useState(DEFAULT_PROJECT_ID);
+  const { data, isLoading } = useProjects();
+  const projects = useMemo(() => data ?? [], [data]);
 
-  const value = useMemo<ProjectContextValue>(() => {
-    const selectedProject = projects.find((p) => p.id === selectedId) ?? projects[0];
-    return {
+  const [selectedId, setSelectedId] = useState<number | null>(() => {
+    const stored = localStorage.getItem(SELECTED_PROJECT_STORAGE_KEY);
+    return stored ? Number(stored) : null;
+  });
+
+  const selectedProject = useMemo(() => {
+    const found = projects.find((project) => project.id === selectedId);
+    return found ?? projects[0] ?? null;
+  }, [projects, selectedId]);
+
+  // Keep storage in sync even when the fallback (first project) is what ends
+  // up selected -- e.g. after the previously-selected project was deleted.
+  useEffect(() => {
+    if (selectedProject) localStorage.setItem(SELECTED_PROJECT_STORAGE_KEY, String(selectedProject.id));
+  }, [selectedProject]);
+
+  const value = useMemo<ProjectContextValue>(
+    () => ({
       projects,
+      isLoading,
       selectedProject,
       selectProject: setSelectedId,
-      addProject: (project) => {
-        setProjects((prev) => [...prev, { ...project, isSample: true }]);
-        setSelectedId(project.id);
-      },
-      updateProject: (id, updates) => {
-        setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)));
-      },
-    };
-  }, [projects, selectedId]);
+    }),
+    [projects, isLoading, selectedProject]
+  );
 
   return <ProjectContext.Provider value={value}>{children}</ProjectContext.Provider>;
 }

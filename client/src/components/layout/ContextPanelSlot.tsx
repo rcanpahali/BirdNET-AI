@@ -1,9 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import { Button } from '../ui/button';
 import { ScrollArea } from '../ui/scroll-area';
 import { useContextPanel } from '../../context/ContextPanelContext';
 
 export function ContextPanelSlot() {
+  const { t } = useTranslation();
   const { panel, close } = useContextPanel();
   if (!panel) return null;
 
@@ -14,7 +16,7 @@ export function ContextPanelSlot() {
           <h2 className="truncate text-sm font-semibold text-foreground">{panel.title}</h2>
           {panel.description && <p className="truncate text-xs text-muted-foreground">{panel.description}</p>}
         </div>
-        <Button variant="ghost" size="icon" className="size-7 shrink-0" onClick={close} aria-label="Close panel">
+        <Button variant="ghost" size="icon" className="size-7 shrink-0" onClick={close} aria-label={t('topNav.closePanel')}>
           <X className="size-4" />
         </Button>
       </div>

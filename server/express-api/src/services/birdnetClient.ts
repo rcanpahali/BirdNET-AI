@@ -1,9 +1,11 @@
 import fs from 'node:fs';
 import axios from 'axios';
 import FormData from 'form-data';
+import { ResultAsync } from 'neverthrow';
 import type { AnalyzerResponse } from '@birdnet/types';
 import { config } from '../config';
-import { UpstreamError } from '../errors';
+import { upstreamError } from '../errors';
+import type { DomainError } from '../errors';
 
 interface AnalyzeUpstreamParams {
   filePath: string;
@@ -14,7 +16,7 @@ interface AnalyzeUpstreamParams {
 
 // Streams the file straight from disk into the outgoing request instead of
 // holding it in memory a second time.
-export async function analyzeUpstream(params: AnalyzeUpstreamParams): Promise<AnalyzerResponse> {
+export function analyzeUpstream(params: AnalyzeUpstreamParams): ResultAsync<AnalyzerResponse, DomainError> {
   const formData = new FormData();
   formData.append('file', fs.createReadStream(params.filePath), {
     filename: params.originalName,
@@ -24,36 +26,32 @@ export async function analyzeUpstream(params: AnalyzeUpstreamParams): Promise<An
   const query: Record<string, string> = {};
   if (params.minConf !== undefined) query.min_conf = String(params.minConf);
 
-  try {
-    const response = await axios.post<AnalyzerResponse>(`${config.birdnetApiUrl}/analyze`, formData, {
+  return ResultAsync.fromPromise(
+    axios.post<AnalyzerResponse>(`${config.birdnetApiUrl}/analyze`, formData, {
       headers: formData.getHeaders(),
       params: query,
       timeout: config.analyzeTimeoutMs,
       maxContentLength: Infinity,
       maxBodyLength: Infinity,
-    });
-    return response.data;
-  } catch (error) {
-    throw toUpstreamError(error, 'Analysis request to the BirdNET service failed');
-  }
+    }),
+    (error) => toUpstreamError(error, 'Analysis request to the BirdNET service failed')
+  ).map((response) => response.data);
 }
 
-export async function checkUpstreamHealth(): Promise<unknown> {
-  try {
-    const response = await axios.get(`${config.birdnetApiUrl}/health`, { timeout: config.healthTimeoutMs });
-    return response.data;
-  } catch (error) {
-    throw toUpstreamError(error, 'Failed to reach the BirdNET service');
-  }
+export function checkUpstreamHealth(): ResultAsync<unknown, DomainError> {
+  return ResultAsync.fromPromise(
+    axios.get(`${config.birdnetApiUrl}/health`, { timeout: config.healthTimeoutMs }),
+    (error) => toUpstreamError(error, 'Failed to reach the BirdNET service')
+  ).map((response) => response.data);
 }
 
-function toUpstreamError(error: unknown, fallbackMessage: string): UpstreamError {
+function toUpstreamError(error: unknown, fallbackMessage: string): DomainError {
   if (axios.isAxiosError(error)) {
     const status = error.response?.status ?? 502;
     const body = error.response?.data as { message?: unknown } | undefined;
     const message = typeof body?.message === 'string' ? body.message : fallbackMessage;
-    return new UpstreamError(status, message, body);
+    return upstreamError(status, message, body);
   }
 
-  return new UpstreamError(502, fallbackMessage);
+  return upstreamError(502, fallbackMessage);
 }

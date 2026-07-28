@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MediaRecorder as WavMediaRecorder, register } from 'extendable-media-recorder';
 import type { IMediaRecorder } from 'extendable-media-recorder';
 import { connect } from 'extendable-media-recorder-wav-encoder';
@@ -20,6 +21,7 @@ function ensureWavEncoderRegistered(): Promise<void> {
 }
 
 export function Recorder({ onRecordingComplete, onRecordingStart, disabled = false }: RecorderProps) {
+  const { t } = useTranslation();
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
@@ -71,7 +73,7 @@ export function Recorder({ onRecordingComplete, onRecordingStart, disabled = fal
       timerRef.current = setInterval(() => setRecordingTime((prev) => prev + 1), 1000);
     } catch (err) {
       console.error('Error accessing microphone:', err);
-      setError('Unable to access microphone. Please grant permission.');
+      setError(t('recorder.micPermissionError'));
     }
   };
 
@@ -101,19 +103,18 @@ export function Recorder({ onRecordingComplete, onRecordingStart, disabled = fal
   return (
     <div className="rounded-lg border border-border bg-muted/40 px-4 py-6">
       <div className="flex flex-col items-center gap-2">
-        <button
+        <Button
           type="button"
+          variant={isRecording ? 'destructive' : 'default'}
+          size="icon"
           onClick={isRecording ? stopRecording : startRecording}
           disabled={disabled}
-          title={isRecording ? 'Stop Recording' : 'Start Recording'}
-          className={cn(
-            'flex h-16 w-16 items-center justify-center rounded-full text-primary-foreground transition disabled:cursor-not-allowed disabled:opacity-50',
-            isRecording ? 'animate-pulse bg-destructive' : 'bg-primary hover:bg-primary/90'
-          )}
+          title={isRecording ? t('recorder.stopRecording') : t('recorder.startRecording')}
+          className={cn('h-16 w-16 rounded-full [&_svg]:size-6', isRecording && 'animate-pulse')}
         >
-          <Mic className="size-6" />
-        </button>
-        <p className="text-xs text-muted-foreground">{isRecording ? 'Recording…' : 'Tap to record'}</p>
+          <Mic />
+        </Button>
+        <p className="text-xs text-muted-foreground">{isRecording ? t('recorder.recording') : t('recorder.tapToRecord')}</p>
         {isRecording && <span className="font-mono text-lg font-semibold text-destructive">{formatTime(recordingTime)}</span>}
       </div>
 
@@ -122,13 +123,13 @@ export function Recorder({ onRecordingComplete, onRecordingStart, disabled = fal
       {audioBlob && !isRecording && (
         <div className="mt-4">
           <div className="mb-2 flex items-center justify-center gap-3">
-            <p className="text-sm font-medium text-primary">Recording ready ({formatTime(recordingTime)})</p>
+            <p className="text-sm font-medium text-primary">{t('recorder.recordingReady', { time: formatTime(recordingTime) })}</p>
             <Button
               type="button"
               variant="ghost"
               size="icon"
               onClick={clearRecording}
-              title="Delete recording and start over"
+              title={t('recorder.deleteRecordingTitle')}
               className="size-7 text-muted-foreground hover:text-destructive"
             >
               <Trash2 className="size-4" />

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { LucideIcon } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { Skeleton } from '../ui/skeleton';
@@ -24,23 +25,24 @@ const accentClasses: Record<NonNullable<StatCardProps['accent']>, string> = {
 };
 
 export function StatCard({ icon: Icon, label, value, hint, loading, isPlaceholder, accent = 'primary' }: StatCardProps) {
+  const { t } = useTranslation();
   return (
     <Card className={cn(isPlaceholder && 'border-dashed')}>
-      <CardContent className="flex items-start justify-between gap-3 p-5">
-        <div className="min-w-0 space-y-1.5">
-          <div className="flex items-center gap-2">
+      <CardContent className="flex items-start justify-between gap-2 p-3">
+        <div className="min-w-0 space-y-1">
+          <div className="flex items-center gap-1.5">
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
-            {isPlaceholder && <PlaceholderBadge label="Sample" />}
+            {isPlaceholder && <PlaceholderBadge label={t('common.sample')} />}
           </div>
           {loading ? (
-            <Skeleton className="h-7 w-20" />
+            <Skeleton className="h-6 w-16" />
           ) : (
-            <p className="text-2xl font-semibold tracking-tight text-foreground">{value}</p>
+            <p className="text-lg font-semibold tracking-tight text-foreground">{value}</p>
           )}
           {hint && !loading && <p className="text-xs text-muted-foreground">{hint}</p>}
         </div>
-        <div className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-lg', accentClasses[accent])}>
-          <Icon className="size-5" />
+        <div className={cn('flex h-7 w-7 shrink-0 items-center justify-center rounded-lg', accentClasses[accent])}>
+          <Icon className="size-4" />
         </div>
       </CardContent>
     </Card>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Check, ChevronsUpDown, FolderKanban, Plus } from 'lucide-react';
 import { Button } from '../ui/button';
 import {
@@ -8,12 +9,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
-import { Badge } from '../ui/badge';
 import { NewProjectDialog } from './NewProjectDialog';
 import { useProjectContext } from '../../context/ProjectContext';
 
 export function ProjectSelector() {
+  const { t } = useTranslation();
   const { projects, selectedProject, selectProject } = useProjectContext();
+  if (!selectedProject) return null;
 
   return (
     <DropdownMenu>
@@ -27,21 +29,14 @@ export function ProjectSelector() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-72">
-        <DropdownMenuLabel>Switch project</DropdownMenuLabel>
+        <DropdownMenuLabel>{t('projects.selector.switchProject')}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {projects.map((project) => (
           <DropdownMenuItem key={project.id} onSelect={() => selectProject(project.id)} className="items-start">
             <Check className={project.id === selectedProject.id ? 'mt-0.5 opacity-100' : 'mt-0.5 opacity-0'} />
             <span className="flex min-w-0 flex-1 flex-col">
-              <span className="flex items-center gap-1.5 truncate font-medium text-foreground">
-                {project.name}
-                {project.isSample && (
-                  <Badge variant="placeholder" className="px-1.5 py-0 text-[10px]">
-                    Sample
-                  </Badge>
-                )}
-              </span>
-              <span className="truncate text-xs text-muted-foreground">{project.targetLocation}</span>
+              <span className="truncate font-medium text-foreground">{project.name}</span>
+              <span className="truncate text-xs text-muted-foreground">{project.targetLocation || t('common.noLocationSet')}</span>
             </span>
           </DropdownMenuItem>
         ))}
@@ -49,7 +44,7 @@ export function ProjectSelector() {
         <NewProjectDialog
           trigger={
             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-              <Plus /> New project
+              <Plus /> {t('projects.new')}
             </DropdownMenuItem>
           }
         />

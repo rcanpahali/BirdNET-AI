@@ -11,6 +11,7 @@ export function createApp() {
   app.disable('x-powered-by');
   app.use(cors({ origin: config.corsOrigins }));
   app.use(pinoHttp({ logger }));
+  app.use(express.json());
   app.use(router);
   app.use(notFoundHandler);
   app.use(errorHandler);

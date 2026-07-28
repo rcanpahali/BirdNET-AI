@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { Detection } from '@birdnet/types';
 import { Badge } from './ui/badge';
 
@@ -7,6 +8,7 @@ interface DetectionRowProps {
 }
 
 export function DetectionRow({ detection, variant = 'card' }: DetectionRowProps) {
+  const { t } = useTranslation();
   const {
     common_name: commonName,
     scientific_name: scientificName,
@@ -21,7 +23,7 @@ export function DetectionRow({ detection, variant = 'card' }: DetectionRowProps)
         <div className="mb-0.5 font-medium text-foreground">{commonName}</div>
         <div className="mb-1 text-[13px] italic text-muted-foreground">{scientificName}</div>
         <div className="text-xs text-muted-foreground/80">
-          Confidence: {(confidence * 100).toFixed(1)}% | {startTime.toFixed(1)}s - {endTime.toFixed(1)}s
+          {t('results.confidencePrefix')} {(confidence * 100).toFixed(1)}% | {startTime.toFixed(1)}s - {endTime.toFixed(1)}s
         </div>
       </li>
     );
@@ -35,7 +37,7 @@ export function DetectionRow({ detection, variant = 'card' }: DetectionRowProps)
       </div>
       <p className="mb-2 text-sm italic text-muted-foreground">{scientificName}</p>
       <div className="text-xs text-muted-foreground/80">
-        Time: {startTime.toFixed(1)}s - {endTime.toFixed(1)}s
+        {t('results.timePrefix')} {startTime.toFixed(1)}s - {endTime.toFixed(1)}s
       </div>
     </div>
   );

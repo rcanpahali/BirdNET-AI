@@ -61,3 +61,4 @@ def test_analyzes_valid_wav(client):
     assert body["filename"] == "clip.wav"
     assert body["detection_count"] == len(body["detections"])
     assert "analysis_time_seconds" in body
+    assert body["duration_seconds"] == 2.0

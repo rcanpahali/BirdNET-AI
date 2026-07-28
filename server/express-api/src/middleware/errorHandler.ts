@@ -1,33 +1,23 @@
 import type { NextFunction, Request, Response } from 'express';
 import { MulterError } from 'multer';
 import { config } from '../config';
-import { AppError, UpstreamError } from '../errors';
 import { logger } from '../logger';
 
+/**
+ * Last-resort handler for errors that never went through a `DomainError` /
+ * `Result` path: framework-level failures (Multer, body-parser) and genuinely
+ * unexpected exceptions. Expected failure paths (validation, not-found,
+ * upstream) are handled explicitly per-request via `respondWithError`, not
+ * thrown-and-caught here.
+ */
 export function errorHandler(err: unknown, _req: Request, res: Response, _next: NextFunction): void {
-  if (err instanceof AppError) {
-    if (err.status >= 500) {
-      logger.error({ err }, err.message);
-    } else {
-      logger.warn({ message: err.message }, 'Request rejected');
-    }
-
-    const payload: Record<string, unknown> = { error: err.code, message: err.message };
-    if (err instanceof UpstreamError && err.upstreamBody !== undefined) {
-      payload.upstream = err.upstreamBody;
-    }
-
-    res.status(err.status).json(payload);
-    return;
-  }
-
   if (err instanceof MulterError) {
     const message =
       err.code === 'LIMIT_FILE_SIZE'
         ? `File too large. Maximum size: ${(config.maxFileSize / 1024 / 1024).toFixed(1)}MB`
         : err.message;
     logger.warn({ message }, 'Upload rejected');
-    res.status(400).json({ error: 'validation_error', message });
+    res.status(400).json({ error: 'validation', message });
     return;
   }
 

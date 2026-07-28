@@ -1,10 +1,10 @@
 import type { Analysis } from '@birdnet/types';
+import { i18n } from '../i18n';
 
 /**
  * Derivations computed purely from real `/analyses` data. Nothing in this
  * file is a placeholder -- if a metric can't be honestly derived from the
- * `Analysis`/`Detection` shape (e.g. recording duration isn't tracked yet),
- * it belongs in `mockData.ts` instead, not here.
+ * `Analysis`/`Detection` shape, it belongs in `mockData.ts` instead, not here.
  */
 
 export interface SpeciesCount {
@@ -22,6 +22,19 @@ export interface DailyActivity {
 
 export function totalRecordings(analyses: Analysis[]): number {
   return analyses.length;
+}
+
+/** Total recording hours across completed analyses (failed analyses have no duration). */
+export function recordingHours(analyses: Analysis[]): number {
+  const totalSeconds = analyses.reduce((sum, a) => sum + (a.status === 'completed' ? (a.duration ?? 0) : 0), 0);
+  return Math.round((totalSeconds / 3600) * 10) / 10;
+}
+
+/** Percentage of analyses that completed successfully, or `null` if none have been attempted yet. */
+export function uploadSuccessRate(analyses: Analysis[]): number | null {
+  if (analyses.length === 0) return null;
+  const completed = analyses.filter((a) => a.status === 'completed').length;
+  return Math.round((completed / analyses.length) * 100);
 }
 
 export function totalDetections(analyses: Analysis[]): number {
@@ -94,7 +107,7 @@ export function weeklyActivity(analyses: Analysis[]): DailyActivity[] {
     const dateKey = day.toISOString().slice(0, 10);
     days.push({
       date: dateKey,
-      label: day.toLocaleDateString(undefined, { weekday: 'short' }),
+      label: day.toLocaleDateString(i18n.language, { weekday: 'short' }),
       recordings: 0,
       detections: 0,
     });
@@ -129,7 +142,11 @@ export interface WeekdayCount {
 
 /** Recording frequency by day of week, across all history (not just the last 7 days). */
 export function recordingFrequencyByWeekday(analyses: Analysis[]): WeekdayCount[] {
-  const labels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  // 2024-01-07 was a Sunday -- Intl gives correctly localized short weekday
+  // names for the app's active language, matching `Date#getDay()`'s
+  // 0 = Sunday convention used below, without a hand-maintained English array.
+  const formatter = new Intl.DateTimeFormat(i18n.language, { weekday: 'short' });
+  const labels = Array.from({ length: 7 }, (_, i) => formatter.format(new Date(Date.UTC(2024, 0, 7 + i))));
   const counts = new Array(7).fill(0) as number[];
 
   for (const analysis of analyses) {
@@ -138,6 +155,29 @@ export function recordingFrequencyByWeekday(analyses: Analysis[]): WeekdayCount[
   }
 
   return labels.map((day, i) => ({ day, recordings: counts[i] }));
+}
+
+export type Season = 'winter' | 'spring' | 'summer' | 'autumn';
+
+export interface SeasonCount {
+  season: Season;
+  recordings: number;
+}
+
+// Meteorological seasons, Northern Hemisphere (Dec-Feb winter, ... matches the app's
+// primary user base) -- month is `Date#getMonth()`'s 0 = January convention.
+const SEASON_BY_MONTH: Season[] = ['winter', 'winter', 'spring', 'spring', 'spring', 'summer', 'summer', 'summer', 'autumn', 'autumn', 'autumn', 'winter'];
+
+/** Recording activity grouped by season, across all history (not just the current year). */
+export function seasonalActivity(analyses: Analysis[]): SeasonCount[] {
+  const counts: Record<Season, number> = { winter: 0, spring: 0, summer: 0, autumn: 0 };
+
+  for (const analysis of analyses) {
+    const season = SEASON_BY_MONTH[new Date(analysis.createdAt).getMonth()];
+    counts[season] += 1;
+  }
+
+  return (['winter', 'spring', 'summer', 'autumn'] satisfies Season[]).map((season) => ({ season, recordings: counts[season] }));
 }
 
 export interface LocationCount {

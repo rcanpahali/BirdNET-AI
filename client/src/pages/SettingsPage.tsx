@@ -1,20 +1,35 @@
+import { useTranslation } from 'react-i18next';
 import { Settings } from 'lucide-react';
 import { PageHeader } from '../components/shared/PageHeader';
 import { EmptyState } from '../components/shared/EmptyState';
-import { Card, CardContent } from '../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { PlaceholderBadge } from '../components/shared/PlaceholderBadge';
+import { LanguageToggle } from '../components/layout/LanguageToggle';
 
 export function SettingsPage() {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-6">
-      <PageHeader title="Settings" description="Account, project, and platform preferences." />
+      <PageHeader title={t('nav.settings')} description={t('settings.description')} />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('settings.language.title')}</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-wrap items-center justify-between gap-4">
+          <p className="max-w-md text-sm text-muted-foreground">{t('settings.language.description')}</p>
+          <LanguageToggle variant="full" />
+        </CardContent>
+      </Card>
+
       <Card className="border-dashed">
         <CardContent className="p-0">
           <EmptyState
             icon={Settings}
-            title="Settings aren't implemented yet"
-            description="There's no user/account system or configurable preferences yet -- this page is a placeholder for where they'll live."
-            action={<PlaceholderBadge label="Coming soon" note="No settings are wired up to a backend yet." />}
+            title={t('settings.placeholderTitle')}
+            description={t('settings.placeholderDescription')}
+            action={<PlaceholderBadge label={t('common.comingSoon')} note={t('settings.placeholderNote')} />}
           />
         </CardContent>
       </Card>

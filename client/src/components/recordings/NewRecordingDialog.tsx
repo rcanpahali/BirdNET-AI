@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Progress } from '../ui/progress';
@@ -7,6 +8,7 @@ import type { UploadFormValues } from '../upload-form/UploadForm';
 import { ResultsPanel } from '../ResultsPanel';
 import { getErrorMessage } from '../../api/client';
 import { useAnalyzeMutation } from '../../hooks/useAnalyzeMutation';
+import { useProjectContext } from '../../context/ProjectContext';
 
 interface NewRecordingDialogProps {
   open: boolean;
@@ -21,13 +23,16 @@ interface NewRecordingDialogProps {
  * which navigates here first if needed. See NewRecordingDialogContext.
  */
 export function NewRecordingDialog({ open, onOpenChange, onAnalyzed }: NewRecordingDialogProps) {
+  const { t } = useTranslation();
   const [lastFormData, setLastFormData] = useState<FormData | null>(null);
   const mutation = useAnalyzeMutation();
+  const { selectedProject } = useProjectContext();
 
   const buildFormData = (values: UploadFormValues): FormData | null => {
-    if (!values.file) return null;
+    if (!values.file || !selectedProject) return null;
     const formData = new FormData();
     formData.append('file', values.file);
+    formData.append('project_id', String(selectedProject.id));
     if (values.lat) formData.append('lat', values.lat);
     if (values.lon) formData.append('lon', values.lon);
     const parsedMinConf = Number.parseFloat(values.minConf);
@@ -61,8 +66,8 @@ export function NewRecordingDialog({ open, onOpenChange, onAnalyzed }: NewRecord
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-h-[85vh] max-w-xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>New recording</DialogTitle>
-          <DialogDescription>Record audio directly, or drag and drop a file to analyze it with BirdNET.</DialogDescription>
+          <DialogTitle>{t('recordings.new')}</DialogTitle>
+          <DialogDescription>{t('recordings.dialog.description')}</DialogDescription>
         </DialogHeader>
 
         {!mutation.isSuccess && (
@@ -72,7 +77,7 @@ export function NewRecordingDialog({ open, onOpenChange, onAnalyzed }: NewRecord
         {mutation.isPending && (
           <div className="space-y-1.5">
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Uploading…</span>
+              <span>{t('recordings.dialog.uploading')}</span>
               <span>{mutation.uploadProgress ?? 0}%</span>
             </div>
             <Progress value={mutation.uploadProgress ?? 0} />
@@ -82,10 +87,10 @@ export function NewRecordingDialog({ open, onOpenChange, onAnalyzed }: NewRecord
         {mutation.isError && (
           <div className="flex items-center justify-between gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
             <span>
-              <strong className="font-semibold">Upload failed:</strong> {getErrorMessage(mutation.error)}
+              <strong className="font-semibold">{t('recordings.dialog.uploadFailed')}</strong> {getErrorMessage(mutation.error)}
             </span>
             <Button size="sm" variant="outline" onClick={handleRetry}>
-              Retry
+              {t('recordings.dialog.retry')}
             </Button>
           </div>
         )}
@@ -94,7 +99,7 @@ export function NewRecordingDialog({ open, onOpenChange, onAnalyzed }: NewRecord
           <div className="space-y-4">
             <ResultsPanel results={mutation.data} />
             <Button className="w-full" onClick={() => handleOpenChange(false)}>
-              Done
+              {t('recordings.dialog.done')}
             </Button>
           </div>
         )}

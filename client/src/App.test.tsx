@@ -5,13 +5,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
 import * as apiClient from './api/client';
 import { renderWithProviders } from './test/renderWithProviders';
+import { LANGUAGE_STORAGE_KEY } from './i18n';
 
 vi.mock('./api/client', async () => {
   const actual = await vi.importActual<typeof import('./api/client')>('./api/client');
+  const { OTHER_TEST_PROJECT, TEST_PROJECT } = await import('./test/fixtures');
   return {
     ...actual,
     analyzeAudio: vi.fn(),
     fetchAnalyses: vi.fn(),
+    fetchProjects: vi.fn().mockResolvedValue([TEST_PROJECT, OTHER_TEST_PROJECT]),
   };
 });
 
@@ -46,8 +49,8 @@ describe('App', () => {
     const user = userEvent.setup();
     renderWithProviders(<App />);
 
-    const nav = screen.getByRole('navigation', { name: /primary/i });
     await screen.findByRole('heading', { name: /dashboard/i });
+    const nav = screen.getByRole('navigation', { name: /primary/i });
 
     await user.click(within(nav).getByRole('link', { name: /^recordings$/i }));
     expect(await screen.findByRole('heading', { name: /^recordings$/i })).toBeInTheDocument();
@@ -84,8 +87,8 @@ describe('App', () => {
     const user = userEvent.setup();
     renderWithProviders(<App />);
 
-    const nav = screen.getByRole('navigation', { name: /primary/i });
     await screen.findByRole('heading', { name: /dashboard/i });
+    const nav = screen.getByRole('navigation', { name: /primary/i });
 
     await user.click(within(nav).getByRole('link', { name: /^recordings$/i }));
 
@@ -102,6 +105,27 @@ describe('App', () => {
     await user.click(await screen.findByText(/alpine meadow survey/i));
 
     expect(await screen.findByText(/overview for alpine meadow survey/i)).toBeInTheDocument();
-    expect(screen.getByText(/no recordings linked to it yet/i)).toBeInTheDocument();
+  });
+
+  it('defaults to English when no language preference is stored', async () => {
+    renderWithProviders(<App />);
+    expect(await screen.findByRole('heading', { name: /dashboard/i })).toBeInTheDocument();
+  });
+
+  it('switches the whole app to German via the sidebar language dropdown, and persists the choice', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<App />);
+
+    await screen.findByRole('heading', { name: /dashboard/i });
+    const nav = screen.getByRole('navigation', { name: /primary/i });
+    expect(within(nav).getByRole('link', { name: /^recordings$/i })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /^language$/i }));
+    await user.click(await screen.findByRole('menuitemradio', { name: 'Deutsch' }));
+
+    expect(await screen.findByRole('heading', { name: /^dashboard$/i })).toBeInTheDocument();
+    expect(within(nav).getByRole('link', { name: /^aufnahmen$/i })).toBeInTheDocument();
+    expect(within(nav).queryByRole('link', { name: /^recordings$/i })).not.toBeInTheDocument();
+    expect(localStorage.getItem(LANGUAGE_STORAGE_KEY)).toBe('de');
   });
 });

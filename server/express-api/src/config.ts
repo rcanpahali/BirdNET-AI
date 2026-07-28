@@ -18,6 +18,8 @@ export const config = {
   maxFileSize: parseIntEnv(process.env.MAX_FILE_SIZE, 100 * 1024 * 1024),
   analyzeTimeoutMs: parseIntEnv(process.env.ANALYZE_TIMEOUT_MS, 120_000),
   healthTimeoutMs: parseIntEnv(process.env.HEALTH_TIMEOUT_MS, 15_000),
+  geocodingApiUrl: process.env.GEOCODING_API_URL ?? 'https://nominatim.openstreetmap.org',
+  geocodingTimeoutMs: parseIntEnv(process.env.GEOCODING_TIMEOUT_MS, 5_000),
   corsOrigins: parseOrigins(process.env.CORS_ORIGINS),
   databasePath: process.env.DATABASE_PATH ?? './data/birdnet.db',
   logLevel: process.env.LOG_LEVEL ?? 'info',

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Plus } from 'lucide-react';
 import { PageHeader } from '../components/shared/PageHeader';
 import { Button } from '../components/ui/button';
@@ -8,19 +9,20 @@ import { useProjectContext } from '../context/ProjectContext';
 import { useContextPanel } from '../context/ContextPanelContext';
 
 export function ProjectsPage() {
+  const { t } = useTranslation();
   const { projects, selectedProject, selectProject } = useProjectContext();
-  const { open } = useContextPanel();
+  const { open, close } = useContextPanel();
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Projects"
-        description="Navigate between projects to compare recordings, locations, and analytics."
+        title={t('nav.projects')}
+        description={t('projects.page.description')}
         actions={
           <NewProjectDialog
             trigger={
               <Button>
-                <Plus /> New project
+                <Plus /> {t('projects.new')}
               </Button>
             }
           />
@@ -32,10 +34,11 @@ export function ProjectsPage() {
           <ProjectCard
             key={project.id}
             project={project}
-            active={project.id === selectedProject.id}
+            active={project.id === selectedProject?.id}
             onSelect={() => selectProject(project.id)}
+            onDeleted={close}
             onViewDetails={() =>
-              open({ title: project.name, description: project.targetLocation, content: <ProjectDetailPanel project={project} /> })
+              open({ title: project.name, description: project.targetLocation ?? undefined, content: <ProjectDetailPanel project={project} /> })
             }
           />
         ))}

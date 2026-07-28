@@ -65,6 +65,7 @@ class AnalyzerService:
             "detections": recording.detections,
             "detection_count": len(recording.detections),
             "analysis_time_seconds": round(elapsed, 2),
+            "duration_seconds": round(recording.duration, 2) if recording.duration is not None else None,
         }
 
 

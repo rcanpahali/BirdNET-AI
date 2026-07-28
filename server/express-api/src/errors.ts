@@ -1,28 +1,16 @@
-export class AppError extends Error {
-  status: number;
-  code: string;
+export type DomainError =
+  | { kind: 'validation'; message: string; details?: unknown }
+  | { kind: 'not_found'; message: string }
+  | { kind: 'upstream'; status: number; message: string; upstreamBody?: unknown };
 
-  constructor(status: number, message: string, code = 'error') {
-    super(message);
-    this.status = status;
-    this.code = code;
-  }
+export function validationError(message: string, details?: unknown): DomainError {
+  return { kind: 'validation', message, details };
 }
 
-export class ValidationError extends AppError {
-  details?: unknown;
-
-  constructor(message: string, details?: unknown) {
-    super(400, message, 'validation_error');
-    this.details = details;
-  }
+export function notFoundError(message: string): DomainError {
+  return { kind: 'not_found', message };
 }
 
-export class UpstreamError extends AppError {
-  upstreamBody?: unknown;
-
-  constructor(status: number, message: string, upstreamBody?: unknown) {
-    super(status, message, 'upstream_error');
-    this.upstreamBody = upstreamBody;
-  }
+export function upstreamError(status: number, message: string, upstreamBody?: unknown): DomainError {
+  return { kind: 'upstream', status, message, upstreamBody };
 }

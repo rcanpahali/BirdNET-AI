@@ -1,30 +1,26 @@
+import { useTranslation } from 'react-i18next';
 import { Filter } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Checkbox } from '../ui/checkbox';
 import { Button } from '../ui/button';
-import { PlaceholderBadge } from '../shared/PlaceholderBadge';
-import { useProjectContext } from '../../context/ProjectContext';
-import { DEFAULT_PROJECT_ID } from '../../lib/mockData';
 import type { DateRangeFilter } from '../../lib/dateRange';
 
 export type { DateRangeFilter };
 
-export interface MapFilterState {
+export interface RecordingFilterState {
   dateRange: DateRangeFilter;
   species: string[];
-  projectId: string;
 }
 
-interface MapFiltersProps {
-  filters: MapFilterState;
-  onChange: (next: MapFilterState) => void;
+interface RecordingFiltersProps {
+  filters: RecordingFilterState;
+  onChange: (next: RecordingFilterState) => void;
   availableSpecies: string[];
 }
 
-export function MapFilters({ filters, onChange, availableSpecies }: MapFiltersProps) {
-  const { projects } = useProjectContext();
-
+export function RecordingFilters({ filters, onChange, availableSpecies }: RecordingFiltersProps) {
+  const { t } = useTranslation();
   const toggleSpecies = (name: string) => {
     const next = filters.species.includes(name) ? filters.species.filter((s) => s !== name) : [...filters.species, name];
     onChange({ ...filters, species: next });
@@ -37,35 +33,22 @@ export function MapFilters({ filters, onChange, availableSpecies }: MapFiltersPr
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">All time</SelectItem>
-          <SelectItem value="7d">Last 7 days</SelectItem>
-          <SelectItem value="30d">Last 30 days</SelectItem>
-          <SelectItem value="90d">Last 90 days</SelectItem>
-        </SelectContent>
-      </Select>
-
-      <Select value={filters.projectId} onValueChange={(value) => onChange({ ...filters, projectId: value })}>
-        <SelectTrigger className="w-44">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {projects.map((project) => (
-            <SelectItem key={project.id} value={project.id}>
-              {project.name}
-            </SelectItem>
-          ))}
+          <SelectItem value="all">{t('common.dateRangeAll')}</SelectItem>
+          <SelectItem value="7d">{t('common.dateRange7d')}</SelectItem>
+          <SelectItem value="30d">{t('common.dateRange30d')}</SelectItem>
+          <SelectItem value="90d">{t('common.dateRange90d')}</SelectItem>
         </SelectContent>
       </Select>
 
       <Popover>
         <PopoverTrigger asChild>
           <Button variant="outline" size="sm">
-            <Filter /> Species {filters.species.length > 0 && `(${filters.species.length})`}
+            <Filter /> {t('common.species')} {filters.species.length > 0 && `(${filters.species.length})`}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-64">
           {availableSpecies.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No species detected yet.</p>
+            <p className="text-sm text-muted-foreground">{t('common.noSpeciesDetectedYet')}</p>
           ) : (
             <div className="max-h-64 space-y-1 overflow-y-auto">
               {availableSpecies.map((name) => (
@@ -78,18 +61,11 @@ export function MapFilters({ filters, onChange, availableSpecies }: MapFiltersPr
           )}
           {filters.species.length > 0 && (
             <Button variant="ghost" size="sm" className="mt-2 w-full" onClick={() => onChange({ ...filters, species: [] })}>
-              Clear species
+              {t('common.clearSpecies')}
             </Button>
           )}
         </PopoverContent>
       </Popover>
-
-      {filters.projectId !== DEFAULT_PROJECT_ID && (
-        <PlaceholderBadge
-          label="0 results expected"
-          note="Recordings aren't scoped to a project server-side yet, so sample projects always show zero results here."
-        />
-      )}
     </div>
   );
 }

@@ -9,7 +9,8 @@ import { renderWithProviders } from '../../test/renderWithProviders';
 
 vi.mock('../../api/client', async () => {
   const actual = await vi.importActual<typeof import('../../api/client')>('../../api/client');
-  return { ...actual, analyzeAudio: vi.fn() };
+  const { TEST_PROJECT } = await import('../../test/fixtures');
+  return { ...actual, analyzeAudio: vi.fn(), fetchProjects: vi.fn().mockResolvedValue([TEST_PROJECT]) };
 });
 
 vi.mock('../../lib/geolocation', () => ({
@@ -33,7 +34,7 @@ function ControlledDialog() {
 }
 
 async function uploadAndSubmit(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByRole('button', { name: /^upload$/i }));
+  await user.click(screen.getByRole('radio', { name: /^upload$/i }));
   const file = new File(['fake audio content'], 'clip.wav', { type: 'audio/wav' });
   await user.upload(screen.getByLabelText(/audio file/i), file);
   await user.click(screen.getByRole('button', { name: /analyze audio/i }));

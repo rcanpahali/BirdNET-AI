@@ -1,29 +1,38 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Map as MapIcon } from 'lucide-react';
 import { PageHeader } from '../components/shared/PageHeader';
 import { EmptyState } from '../components/shared/EmptyState';
 import { Skeleton } from '../components/ui/skeleton';
 import { MapView } from '../components/map/MapView';
 import type { LocatedAnalysis } from '../components/map/MapView';
-import { MapFilters } from '../components/map/MapFilters';
-import type { MapFilterState } from '../components/map/MapFilters';
+import { RecordingFilters } from '../components/shared/RecordingFilters';
+import type { RecordingFilterState } from '../components/shared/RecordingFilters';
 import { RecordingDetailPanel } from '../components/recordings/RecordingDetailPanel';
 import { useAnalyses } from '../hooks/useAnalyses';
 import { useContextPanel } from '../context/ContextPanelContext';
-import { DEFAULT_PROJECT_ID } from '../lib/mockData';
+import { useProjectContext } from '../context/ProjectContext';
+import { formatDateTime } from '../lib/format';
 import { distinctSpeciesNames } from '../lib/analytics';
 import { computeDateRangeCutoff } from '../lib/dateRange';
 
 export function MapPage() {
-  const { data: analyses, isLoading } = useAnalyses();
-  const { open } = useContextPanel();
+  const { t } = useTranslation();
+  const { selectedProject } = useProjectContext();
+  const { data: analyses, isLoading } = useAnalyses(selectedProject?.id);
+  const { open, panel } = useContextPanel();
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [filters, setFilters] = useState<MapFilterState>({ dateRange: 'all', species: [], projectId: DEFAULT_PROJECT_ID });
+  // The panel can close without MapPage knowing why (its own "X" button, or
+  // AppShell closing it on navigation) -- derive the highlighted pin from
+  // whether the panel is actually open, rather than tracking it separately,
+  // so a pin never stays highlighted with nothing backing it.
+  const highlightedId = panel ? selectedId : null;
+  const [filters, setFilters] = useState<RecordingFilterState>({ dateRange: 'all', species: [] });
   // Computed only from the onChange handler below (an event, not render) --
   // `Date.now()` may not be called during render.
   const [cutoff, setCutoff] = useState<number | null>(null);
 
-  const handleFiltersChange = (next: MapFilterState) => {
+  const handleFiltersChange = (next: RecordingFilterState) => {
     if (next.dateRange !== filters.dateRange) setCutoff(computeDateRangeCutoff(next.dateRange));
     setFilters(next);
   };
@@ -34,8 +43,6 @@ export function MapPage() {
   );
 
   const filtered = useMemo(() => {
-    if (filters.projectId !== DEFAULT_PROJECT_ID) return [];
-
     return located.filter((analysis) => {
       if (cutoff !== null && new Date(analysis.createdAt).getTime() < cutoff) return false;
       if (filters.species.length > 0) {
@@ -49,8 +56,8 @@ export function MapPage() {
   const handleMarkerClick = (analysis: LocatedAnalysis) => {
     setSelectedId(analysis.id);
     open({
-      title: analysis.filename,
-      description: new Date(analysis.createdAt).toLocaleString(),
+      title: t('recordings.label', { id: analysis.id }),
+      description: formatDateTime(analysis.createdAt),
       content: <RecordingDetailPanel analysis={analysis} />,
     });
   };
@@ -58,30 +65,31 @@ export function MapPage() {
   return (
     <div className="flex h-full flex-col gap-4">
       <PageHeader
-        title="Interactive Map"
-        description={
-          isLoading
-            ? 'Loading recording locations…'
-            : `${filtered.length} of ${located.length} located recording${located.length !== 1 ? 's' : ''} shown`
-        }
+        title={t('nav.map')}
+        description={isLoading ? t('map.loading') : t('map.locatedShown', { shown: filtered.length, count: located.length })}
       />
 
-      <MapFilters filters={filters} onChange={handleFiltersChange} availableSpecies={distinctSpeciesNames(analyses ?? [])} />
+      <RecordingFilters filters={filters} onChange={handleFiltersChange} availableSpecies={distinctSpeciesNames(analyses ?? [])} />
 
       {isLoading && <Skeleton className="h-[65vh] w-full" />}
 
       {!isLoading && located.length === 0 && (
         <EmptyState
           icon={MapIcon}
-          title="Select a map location to begin."
-          description="No recordings have GPS coordinates yet. Locations are captured automatically when you record or upload with location access enabled."
+          title={t('common.mapEmptyTitle')}
+          description={t('map.noGpsDescription')}
           className="flex-1"
         />
       )}
 
       {!isLoading && located.length > 0 && (
-        <div className="min-h-[65vh] flex-1 overflow-hidden rounded-xl border border-border shadow-sm">
-          <MapView analyses={filtered} onMarkerClick={handleMarkerClick} selectedId={selectedId} />
+        // `h-[65vh]` (not `min-h`/`flex-1`) -- Leaflet's container is `height: 100%`, which
+        // only resolves against a parent with an explicit height. A min-height-only parent
+        // leaves it height:auto, which collapses to 0 since Leaflet's panes are absolutely
+        // positioned (no intrinsic height), so the map renders with loaded tiles but zero
+        // visible height.
+        <div className="h-[65vh] overflow-hidden rounded-xl border border-border shadow-sm">
+          <MapView analyses={filtered} onMarkerClick={handleMarkerClick} selectedId={highlightedId} />
         </div>
       )}
     </div>

@@ -1,8 +1,15 @@
 import type { RequestHandler } from 'express';
 import { Router } from 'express';
-import { listAnalysesController } from '../controllers/analyses.controller';
+import { listAnalysesController, updateAnalysisController } from '../controllers/analyses.controller';
 import { analyzeController } from '../controllers/analyze.controller';
 import { healthController, rootController } from '../controllers/health.controller';
+import {
+  createProjectController,
+  deleteProjectController,
+  getProjectController,
+  listProjectsController,
+  updateProjectController,
+} from '../controllers/projects.controller';
 import { upload } from '../middleware/upload';
 
 export const router = Router();
@@ -14,3 +21,10 @@ router.get('/health', healthController);
 // our @types/express@5. Purely a type-identity issue, not a runtime one.
 router.post('/analyze', upload.single('file') as unknown as RequestHandler, analyzeController);
 router.get('/analyses', listAnalysesController);
+router.patch('/analyses/:id', updateAnalysisController);
+
+router.get('/projects', listProjectsController);
+router.post('/projects', createProjectController);
+router.get('/projects/:id', getProjectController);
+router.patch('/projects/:id', updateProjectController);
+router.delete('/projects/:id', deleteProjectController);

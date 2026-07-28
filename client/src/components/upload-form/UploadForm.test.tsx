@@ -21,7 +21,7 @@ describe('UploadForm', () => {
 
     expect(screen.getByRole('button', { name: /analyze audio/i })).toBeDisabled();
 
-    await user.click(screen.getByRole('button', { name: /^upload$/i }));
+    await user.click(screen.getByRole('radio', { name: /^upload$/i }));
 
     const file = new File(['fake audio content'], 'clip.wav', { type: 'audio/wav' });
     const fileInput = screen.getByLabelText(/audio file/i);
@@ -42,7 +42,7 @@ describe('UploadForm', () => {
   it('disables the toggle and submit buttons while loading', () => {
     render(<UploadForm loading onSubmit={vi.fn()} />);
 
-    expect(screen.getByRole('button', { name: /^record$/i })).toBeDisabled();
+    expect(screen.getByRole('radio', { name: /^record$/i })).toBeDisabled();
     expect(screen.getByRole('button', { name: /analyzing/i })).toBeDisabled();
   });
 
@@ -53,7 +53,7 @@ describe('UploadForm', () => {
     const onSubmit = vi.fn();
 
     render(<UploadForm loading={false} onSubmit={onSubmit} />);
-    await user.click(screen.getByRole('button', { name: /^upload$/i }));
+    await user.click(screen.getByRole('radio', { name: /^upload$/i }));
 
     const file = new File(['fake audio content'], 'clip.wav', { type: 'audio/wav' });
     await user.upload(screen.getByLabelText(/audio file/i), file);
@@ -80,7 +80,7 @@ describe('UploadForm', () => {
     await user.type(screen.getByLabelText(/latitude/i), '10');
     await user.type(screen.getByLabelText(/longitude/i), '20');
 
-    await user.click(screen.getByRole('button', { name: /^upload$/i }));
+    await user.click(screen.getByRole('radio', { name: /^upload$/i }));
     const file = new File(['fake audio content'], 'clip.wav', { type: 'audio/wav' });
     await user.upload(screen.getByLabelText(/audio file/i), file);
 
@@ -96,7 +96,7 @@ describe('UploadForm', () => {
     const onSubmit = vi.fn();
     render(<UploadForm loading={false} onSubmit={onSubmit} />);
 
-    await user.click(screen.getByRole('button', { name: /^upload$/i }));
+    await user.click(screen.getByRole('radio', { name: /^upload$/i }));
     const file = new File(['fake audio content'], 'clip.wav', { type: 'audio/wav' });
     await user.upload(screen.getByLabelText(/audio file/i), file);
 
