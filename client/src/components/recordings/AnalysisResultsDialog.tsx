@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import type { AnalyzerResponse } from '@birdnet/types';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
-import { ResultsPanel } from '../ResultsPanel';
+import { ResultsPanel } from './ResultsPanel';
 import type { AudioSource } from '../audio/AudioPlayer';
 import { getErrorMessage } from '../../api/client';
 import { useDeleteAnalysis } from '../../hooks/useDeleteAnalysis';

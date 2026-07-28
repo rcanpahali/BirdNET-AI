@@ -2,8 +2,8 @@ import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AnalyzerResponse } from '@birdnet/types';
 import { DetectionRow } from './DetectionRow';
-import { AudioPlayer } from './audio/AudioPlayer';
-import type { AudioPlayerHandle, AudioSource } from './audio/AudioPlayer';
+import { AudioPlayer } from '../audio/AudioPlayer';
+import type { AudioPlayerHandle, AudioSource } from '../audio/AudioPlayer';
 
 interface ResultsPanelProps {
   results: AnalyzerResponse;

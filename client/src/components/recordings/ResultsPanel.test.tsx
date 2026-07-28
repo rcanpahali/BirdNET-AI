@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import type { AnalyzerResponse } from '@birdnet/types';
 import { ResultsPanel } from './ResultsPanel';
-import { TooltipProvider } from './ui/tooltip';
+import { TooltipProvider } from '../ui/tooltip';
 
 describe('ResultsPanel', () => {
   it('shows a no-detections message when the list is empty', () => {

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import type { Detection } from '@birdnet/types';
-import { Badge } from './ui/badge';
+import { Badge } from '../ui/badge';
 
 interface DetectionRowProps {
   detection: Detection;
