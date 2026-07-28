@@ -55,16 +55,13 @@
       "Bash(echo \"EXIT CODE: $?\")",
       "Bash(echo \"express typecheck exit: $?\")",
       "Bash(chromium-cli --help)",
-      "Bash(ls \"/Users/canpahali/Library/Caches/ms-playwright/chromium-1228/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\" 2>&1)",
-      "Read(//Users/canpahali/Library/Caches/ms-playwright/chromium-1228/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/**)",
       "Bash(docker-compose build *)",
       "Bash(docker-compose ps *)",
       "Bash(curl -s http://localhost:8080/health)",
       "Bash(curl -s http://localhost:8000)",
       "Bash(curl -s http://localhost:3000/)",
       "Bash(echo \"typecheck: $?\")",
-      "Bash(./venv/bin/ruff check *)",
-      "Bash(curl -s -w \"\\\\nHTTP_STATUS:%{http_code}\\\\n\" -X POST http://localhost:8080/analyze -F \"file=@/Users/canpahali/Documents/Personal/BirdNet/bird_song.mp3\")"
+      "Bash(./venv/bin/ruff check *)"
     ],
     "deny": [
       "Bash(git push*)",
