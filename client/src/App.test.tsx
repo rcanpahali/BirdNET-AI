@@ -56,7 +56,9 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { name: /^recordings$/i })).toBeInTheDocument();
 
     await user.click(within(nav).getByRole('link', { name: /interactive map/i }));
-    expect(await screen.findByRole('heading', { name: /interactive map/i })).toBeInTheDocument();
+    // The Map page has no page heading of its own any more (title/filters float over the
+    // map instead) -- confirm navigation via its empty state (no analyses are mocked here).
+    expect(await screen.findByText(/select a map location to begin/i)).toBeInTheDocument();
 
     await user.click(within(nav).getByRole('link', { name: /^statistics$/i }));
     expect(await screen.findByRole('heading', { name: /^statistics$/i })).toBeInTheDocument();

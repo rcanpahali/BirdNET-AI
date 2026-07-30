@@ -153,3 +153,78 @@ body {
 .leaflet-bottom {
   z-index: 10;
 }
+
+/* Leaflet's default tooltip is a plain white bubble with a CSS-triangle arrow --
+   reskin it as an app-styled popover (border/radius/shadow to match popover.tsx
+   and dropdown-menu.tsx), keeping the arrow (recolored to match) so it still
+   visibly points at the marker underneath. `white-space` is reset because
+   Leaflet's default forces `nowrap`, which would keep the species badges below
+   from ever wrapping. (Opacity is fixed via the `<Tooltip>` component's own
+   `opacity` prop in MapView.tsx, not here -- Leaflet sets it as an inline style,
+   which a CSS class can't override.) */
+.leaflet-tooltip.birdnet-tooltip {
+  background: var(--popover);
+  color: var(--popover-foreground);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
+  padding: 0.625rem 0.75rem;
+  white-space: normal;
+}
+
+/* Only `direction="top"` is ever used (see MapView.tsx), so only that arrow needs recoloring. */
+.leaflet-tooltip.birdnet-tooltip.leaflet-tooltip-top::before {
+  border-top-color: var(--popover);
+}
+
+/* The selected/focused marker's tooltip stays open permanently (see MapView.tsx) -- give it
+   the same warning-amber accent as its pin, so the "this one is selected" signal carries over
+   to the tooltip too. A hover-only tooltip (unselected marker) keeps the neutral border. */
+.leaflet-tooltip.birdnet-tooltip.birdnet-tooltip-focused {
+  border-color: var(--warning);
+  border-width: 2px;
+}
+
+/* Leaflet's default zoom control renders at a fixed 26px -- noticeably smaller than the
+   surrounding floating panels (layer/heatmap toggles, the filters card on the Map page), so
+   enlarge and reskin it (border/radius/shadow/colors) to match their scale and styling. */
+.leaflet-control-zoom.leaflet-bar {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.leaflet-control-zoom.leaflet-bar a {
+  /* Two of these stacked (84px + the 1px divider below) land close to the filters
+     card's own rendered height (p-3 padding + its filter row + description line) --
+     not pixel-identical (that card's height shifts with content/language), but close
+     enough that the two floating elements read as the same scale side by side. */
+  width: 42px;
+  height: 42px;
+  line-height: 42px;
+  background-color: var(--popover);
+  color: var(--popover-foreground);
+  border-bottom-color: var(--border);
+}
+
+.leaflet-control-zoom.leaflet-bar a:hover,
+.leaflet-control-zoom.leaflet-bar a:focus {
+  background-color: var(--muted);
+}
+
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+  font-size: 22px;
+}
+
+/* Opt-in (MapView's `grayscaleBase` prop) desaturation of the base tile layer -- used
+   behind the heatmap so its own color gradient reads as the map's only color signal,
+   rather than competing with colorful satellite/terrain imagery underneath it. */
+.birdnet-grayscale-tiles .leaflet-tile-pane {
+  filter: grayscale(1) contrast(1.05);
+}

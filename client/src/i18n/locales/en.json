@@ -28,7 +28,11 @@
     "dateRangeAll": "All time",
     "dateRange7d": "Last 7 days",
     "dateRange30d": "Last 30 days",
-    "dateRange90d": "Last 90 days"
+    "dateRange90d": "Last 90 days",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "pageOf": "Page {{page}} of {{count}}",
+    "buyMeACoffee": "Buy our volunteer developer a coffee"
   },
   "errors": {
     "generic": "An error occurred"
@@ -98,12 +102,23 @@
       "colDate": "Date",
       "colLocation": "Location",
       "colStatus": "Status",
-      "colQuality": "Quality"
+      "colQuality": "Quality",
+      "colActions": "Actions"
     },
     "cardGrid": {
       "speciesCount_one": "{{count}} species",
       "speciesCount_other": "{{count}} species",
       "noLocationRecorded": "No location recorded"
+    },
+    "actions": {
+      "mapLabel": "Map",
+      "deleteAria": "Delete {{label}}"
+    },
+    "deleteDialog": {
+      "title": "Delete {{label}}?",
+      "description": "You're about to permanently delete this recording:",
+      "deleteButton": "Delete recording",
+      "deleting": "Deleting…"
     },
     "detail": {
       "tagsLabel": "Tags",
@@ -120,7 +135,7 @@
       "aiDetectionSummary": "AI detection summary",
       "avgConfidence": "Avg. confidence",
       "speciesDetectedLabel": "Species detected",
-      "noSpeciesAtThreshold": "No species detected at the current confidence threshold.",
+      "noSpeciesDetected": "No species detected.",
       "speciesBadgeCount_one": "{{count}} detection",
       "speciesBadgeCount_other": "{{count}} detections",
       "recordingAudioLabel": "Recording audio",
@@ -135,9 +150,7 @@
     "satelliteLabel": "Satellite",
     "terrainLabel": "Terrain",
     "markersLabel": "Markers",
-    "heatmapLabel": "Heatmap",
-    "detectionCount_one": "{{count}} detection",
-    "detectionCount_other": "{{count}} detections"
+    "heatmapLabel": "Heatmap"
   },
   "projects": {
     "new": "New project",

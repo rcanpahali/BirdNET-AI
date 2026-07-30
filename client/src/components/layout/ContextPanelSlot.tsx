@@ -16,12 +16,17 @@ export function ContextPanelSlot() {
           <h2 className="truncate text-sm font-semibold text-foreground">{panel.title}</h2>
           {panel.description && <p className="truncate text-xs text-muted-foreground">{panel.description}</p>}
         </div>
-        <Button variant="ghost" size="icon" className="size-7 shrink-0" onClick={close} aria-label={t('topNav.closePanel')}>
-          <X className="size-4" />
-        </Button>
+        <div className="flex shrink-0 items-center gap-1.5">
+          {panel.headerAction}
+          <Button variant="outline" size="icon" className="shrink-0" onClick={close} aria-label={t('topNav.closePanel')}>
+            <X className="size-5" />
+          </Button>
+        </div>
       </div>
       <ScrollArea className="flex-1">
-        <div className="p-4">{panel.content}</div>
+        <div className="p-4" data-testid="context-panel-content">
+          {panel.content}
+        </div>
       </ScrollArea>
     </div>
   );

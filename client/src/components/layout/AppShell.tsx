@@ -10,6 +10,7 @@ import { Skeleton } from '../ui/skeleton';
 import { EmptyState } from '../shared/EmptyState';
 import { Button } from '../ui/button';
 import { NewProjectDialog } from '../projects/NewProjectDialog';
+import { SupportButton } from '../shared/SupportButton';
 import { useContextPanel } from '../../context/ContextPanelContext';
 import { useProjectContext } from '../../context/ProjectContext';
 
@@ -67,9 +68,20 @@ export function AppShell() {
         <Sidebar />
         <ResizablePanelGroup direction="horizontal" className="flex-1">
           <ResizablePanel id="main" order={1} minSize={45} className="!overflow-y-auto">
-            <div role="main" className="mx-auto min-h-full max-w-[1700px] px-6 py-6 lg:px-8">
-              <Outlet />
-            </div>
+            {/* The map wants to fill the panel edge-to-edge (no page padding/max-width, and a
+                real `h-full` rather than `min-h-full` so its own internal `flex-1` map canvas
+                gets a definite height to resolve against) -- every other page keeps the
+                padded, width-capped, content-height reading layout. */}
+            {location.pathname === '/map' ? (
+              <div role="main" className="h-full">
+                <Outlet />
+              </div>
+            ) : (
+              <div role="main" className="mx-auto min-h-full max-w-[1700px] px-6 py-6 lg:px-8">
+                <Outlet />
+              </div>
+            )}
+            <SupportButton />
           </ResizablePanel>
           {panel && (
             <>

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as apiClient from '../api/client';
@@ -38,24 +38,34 @@ vi.mock('react-leaflet', () => ({
     </button>
   ),
   Popup: ({ children }: { children: ReactNode }) => <div data-testid="popup">{children}</div>,
-  Tooltip: ({ children }: { children: ReactNode }) => <div data-testid="tooltip">{children}</div>,
+  Tooltip: ({ children, permanent }: { children: ReactNode; permanent?: boolean }) => (
+    <div data-testid="tooltip" data-permanent={permanent ? 'true' : 'false'}>
+      {children}
+    </div>
+  ),
   // Also stands in for MapResizeHandler's `useMap()` call, which needs
   // `getContainer`/`invalidateSize` alongside FitToMarkers' `fitBounds`.
-  useMap: () => ({ fitBounds: vi.fn(), getContainer: () => document.createElement('div'), invalidateSize: vi.fn() }),
+  useMap: () => ({
+    fitBounds: vi.fn(),
+    flyTo: vi.fn(),
+    getContainer: () => document.createElement('div'),
+    invalidateSize: vi.fn(),
+  }),
 }));
 
 vi.mock('react-leaflet-cluster', () => ({
   default: ({ children }: { children: ReactNode }) => <div data-testid="cluster">{children}</div>,
 }));
 
-function renderMapPage() {
+function renderMapPage(route = '/map') {
   // MapPage only opens the context panel -- render the slot alongside it (as
   // AppShell would) so its content is actually observable in the test.
   return renderWithProviders(
     <>
       <MapPage />
       <ContextPanelSlot />
-    </>
+    </>,
+    { route }
   );
 }
 
@@ -111,7 +121,39 @@ describe('MapPage', () => {
     await user.click(marker);
 
     expect(await screen.findByRole('heading', { name: 'Recording #1' })).toBeInTheDocument();
-    expect(screen.getByText('Robin')).toBeInTheDocument();
-    expect(screen.getByText('50.18000, 8.74000')).toBeInTheDocument();
+    // The marker's own tooltip now also shows "Robin" (species badge), so the detail
+    // panel's copy has to be scoped to disambiguate the two.
+    const panel = screen.getByTestId('context-panel-content');
+    expect(within(panel).getByText('Robin')).toBeInTheDocument();
+    expect(within(panel).getByText('50.18000, 8.74000')).toBeInTheDocument();
+  });
+
+  it('auto-opens the detail panel for a recording linked in via ?focus=', async () => {
+    vi.mocked(apiClient.fetchAnalyses).mockResolvedValue([withLocation, withoutLocation]);
+
+    renderMapPage('/map?focus=1');
+
+    expect(await screen.findByRole('heading', { name: 'Recording #1' })).toBeInTheDocument();
+  });
+
+  it('shows recording, location and species in the marker tooltip (without detection counts), and keeps it permanently visible once selected', async () => {
+    vi.mocked(apiClient.fetchAnalyses).mockResolvedValue([withLocation]);
+    const user = userEvent.setup();
+
+    renderMapPage();
+
+    const tooltip = await screen.findByTestId('tooltip');
+    // The recording label and its short date sit in adjacent text nodes (label, then
+    // ", <date>" in a nested span) -- assert on the tooltip's combined text rather than
+    // a single element, and leave the date's exact formatting unasserted (locale-dependent).
+    expect(tooltip.textContent).toContain('Recording #1, ');
+    expect(within(tooltip).getByText('50.180, 8.740')).toBeInTheDocument();
+    expect(within(tooltip).getByText('Robin')).toBeInTheDocument();
+    expect(within(tooltip).queryByText(/detection/i)).not.toBeInTheDocument();
+    expect(tooltip).toHaveAttribute('data-permanent', 'false');
+
+    await user.click(screen.getByTestId('marker'));
+
+    expect(await screen.findByTestId('tooltip')).toHaveAttribute('data-permanent', 'true');
   });
 });

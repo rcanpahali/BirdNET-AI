@@ -28,7 +28,11 @@
     "dateRangeAll": "Gesamter Zeitraum",
     "dateRange7d": "Letzte 7 Tage",
     "dateRange30d": "Letzte 30 Tage",
-    "dateRange90d": "Letzte 90 Tage"
+    "dateRange90d": "Letzte 90 Tage",
+    "previousPage": "Vorherige Seite",
+    "nextPage": "Nächste Seite",
+    "pageOf": "Seite {{page}} von {{count}}",
+    "buyMeACoffee": "Spendiere unserem ehrenamtlichen Entwickler einen Kaffee"
   },
   "errors": {
     "generic": "Ein Fehler ist aufgetreten"
@@ -98,12 +102,23 @@
       "colDate": "Datum",
       "colLocation": "Standort",
       "colStatus": "Status",
-      "colQuality": "Qualität"
+      "colQuality": "Qualität",
+      "colActions": "Aktionen"
     },
     "cardGrid": {
       "speciesCount_one": "{{count}} Art",
       "speciesCount_other": "{{count}} Arten",
       "noLocationRecorded": "Kein Standort erfasst"
+    },
+    "actions": {
+      "mapLabel": "Karte",
+      "deleteAria": "{{label}} löschen"
+    },
+    "deleteDialog": {
+      "title": "{{label}} löschen?",
+      "description": "Sie sind dabei, diese Aufnahme dauerhaft zu löschen:",
+      "deleteButton": "Aufnahme löschen",
+      "deleting": "Wird gelöscht…"
     },
     "detail": {
       "tagsLabel": "Tags",
@@ -120,7 +135,7 @@
       "aiDetectionSummary": "KI-Erkennungsübersicht",
       "avgConfidence": "Ø Konfidenz",
       "speciesDetectedLabel": "Erkannte Arten",
-      "noSpeciesAtThreshold": "Bei der aktuellen Konfidenzschwelle wurden keine Arten erkannt.",
+      "noSpeciesDetected": "Keine Arten erkannt.",
       "speciesBadgeCount_one": "{{count}} Erkennung",
       "speciesBadgeCount_other": "{{count}} Erkennungen",
       "recordingAudioLabel": "Audioaufnahme",
@@ -135,9 +150,7 @@
     "satelliteLabel": "Satellit",
     "terrainLabel": "Gelände",
     "markersLabel": "Markierungen",
-    "heatmapLabel": "Heatmap",
-    "detectionCount_one": "{{count}} Erkennung",
-    "detectionCount_other": "{{count}} Erkennungen"
+    "heatmapLabel": "Heatmap"
   },
   "projects": {
     "new": "Neues Projekt",

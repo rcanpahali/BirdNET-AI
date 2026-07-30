@@ -21,6 +21,7 @@ import { MapView } from '../components/map/MapView';
 import type { LocatedAnalysis } from '../components/map/MapView';
 import { RecordingsTable } from '../components/recordings/RecordingsTable';
 import { RecordingDetailPanel } from '../components/recordings/RecordingDetailPanel';
+import { RecordingHeaderActions } from '../components/recordings/RecordingHeaderActions';
 import { EmptyState } from '../components/shared/EmptyState';
 import { NewRecordingButton } from '../components/recordings/NewRecordingButton';
 import { useAnalyses } from '../hooks/useAnalyses';
@@ -44,7 +45,7 @@ export function DashboardPage() {
   const { t, i18n } = useTranslation();
   const { selectedProject } = useProjectContext();
   const { data: analyses, isLoading } = useAnalyses(selectedProject?.id);
-  const { open, panel } = useContextPanel();
+  const { open, close, panel } = useContextPanel();
   const [selectedId, setSelectedId] = useState<number | null>(null);
   // The panel can close without the dashboard knowing why (its own "X" button, or
   // AppShell closing it on navigation) -- derive the highlighted row from whether
@@ -153,6 +154,7 @@ export function DashboardPage() {
                   title: t('recordings.label', { id: analysis.id }),
                   description: formatDateTime(analysis.createdAt),
                   content: <RecordingDetailPanel analysis={analysis} />,
+                  headerAction: <RecordingHeaderActions analysis={analysis} onDeleted={close} />,
                 });
               }}
             />
@@ -177,7 +179,7 @@ export function DashboardPage() {
                 className="h-full"
               />
             ) : (
-              <MapView analyses={located} compact />
+              <MapView analyses={located} compact showLocationsToggle />
             )}
           </CardContent>
         </Card>

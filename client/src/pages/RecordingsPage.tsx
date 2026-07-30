@@ -11,8 +11,10 @@ import { NewRecordingButton } from '../components/recordings/NewRecordingButton'
 import { RecordingsTable } from '../components/recordings/RecordingsTable';
 import { RecordingsCardGrid } from '../components/recordings/RecordingsCardGrid';
 import { RecordingDetailPanel } from '../components/recordings/RecordingDetailPanel';
+import { RecordingHeaderActions } from '../components/recordings/RecordingHeaderActions';
 import { RecordingFilters } from '../components/shared/RecordingFilters';
 import type { RecordingFilterState } from '../components/shared/RecordingFilters';
+import { Pagination } from '../components/shared/Pagination';
 import { useAnalyses } from '../hooks/useAnalyses';
 import { useContextPanel } from '../context/ContextPanelContext';
 import { useNewRecordingDialog } from '../context/NewRecordingDialogContext';
@@ -20,8 +22,12 @@ import { useProjectContext } from '../context/ProjectContext';
 import { formatDateTime } from '../lib/format';
 import { distinctSpeciesNames } from '../lib/analytics';
 import { computeDateRangeCutoff } from '../lib/dateRange';
+import { DEFAULT_RECORDING_SORT, sortAnalyses } from '../lib/sortRecordings';
+import type { RecordingSort } from '../lib/sortRecordings';
 
 type ViewMode = 'table' | 'card';
+
+const PAGE_SIZE = 15;
 
 export function RecordingsPage() {
   const { t } = useTranslation();
@@ -48,6 +54,8 @@ export function RecordingsPage() {
   // Computed only from the onChange handler below (an event, not render) --
   // `Date.now()` may not be called during render.
   const [cutoff, setCutoff] = useState<number | null>(null);
+  const [sort, setSort] = useState<RecordingSort>(DEFAULT_RECORDING_SORT);
+  const [page, setPage] = useState(1);
 
   const handleFiltersChange = (next: RecordingFilterState) => {
     if (next.dateRange !== filters.dateRange) setCutoff(computeDateRangeCutoff(next.dateRange));
@@ -65,6 +73,14 @@ export function RecordingsPage() {
     });
   }, [analyses, filters, cutoff]);
 
+  const sorted = useMemo(() => sortAnalyses(filtered, sort), [filtered, sort]);
+  const pageCount = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+  // Derived, not synced via an effect -- a filter/sort change that shrinks the
+  // result set below the page the user was on just reads as "page 1" again,
+  // instead of needing a reset written at every place `sorted` can shrink.
+  const currentPage = Math.min(page, pageCount);
+  const paged = useMemo(() => sorted.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE), [sorted, currentPage]);
+
   const showDetails = (analysis: Analysis) => {
     const audioSource = justAnalyzed && justAnalyzed.id === analysis.id ? { url: justAnalyzed.url, filename: analysis.filename } : null;
 
@@ -73,7 +89,14 @@ export function RecordingsPage() {
       title: t('recordings.label', { id: analysis.id }),
       description: formatDateTime(analysis.createdAt),
       content: <RecordingDetailPanel analysis={analysis} audioSource={audioSource} />,
+      headerAction: <RecordingHeaderActions analysis={analysis} onDeleted={close} />,
     });
+  };
+
+  // Deleting a row/card whose detail panel happens to be open would otherwise
+  // leave the panel showing a recording that no longer exists.
+  const handleRowDeleted = (id: number) => {
+    if (selectedId === id) close();
   };
 
   // Runs once the dialog is closed after a successful analysis -- may fire
@@ -158,10 +181,21 @@ export function RecordingsPage() {
       {!isLoading &&
         hasFilteredRecordings &&
         (view === 'table' ? (
-          <RecordingsTable analyses={filtered} onSelect={showDetails} selectedId={highlightedId} />
+          <RecordingsTable
+            analyses={paged}
+            onSelect={showDetails}
+            selectedId={highlightedId}
+            sort={sort}
+            onSortChange={setSort}
+            onDeleted={handleRowDeleted}
+          />
         ) : (
-          <RecordingsCardGrid analyses={filtered} onSelect={showDetails} selectedId={highlightedId} />
+          <RecordingsCardGrid analyses={paged} onSelect={showDetails} selectedId={highlightedId} onDeleted={handleRowDeleted} />
         ))}
+
+      {!isLoading && hasFilteredRecordings && pageCount > 1 && (
+        <Pagination page={currentPage} pageCount={pageCount} onPageChange={setPage} />
+      )}
     </div>
   );
 }

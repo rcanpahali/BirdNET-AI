@@ -5,6 +5,8 @@ interface ContextPanelState {
   title: string;
   description?: string;
   content: ReactNode;
+  /** Extra icon button(s) rendered in the header next to the close button (e.g. delete). */
+  headerAction?: ReactNode;
 }
 
 interface ContextPanelValue {
