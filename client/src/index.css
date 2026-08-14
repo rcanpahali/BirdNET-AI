@@ -1,21 +1,230 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "leaflet/dist/leaflet.css";
+/* Only the structural stylesheet -- cluster/pin colors come from custom divIcons in MapView.tsx,
+   so MarkerCluster.Default.css's rgba blob colors are never applied. */
+@import "leaflet.markercluster/dist/MarkerCluster.css";
+
+/*
+ * Design tokens for the BirdNET environmental intelligence platform.
+ * Palette: forest/moss greens (primary/secondary), warm neutrals
+ * (background/sidebar), sky blue (map + GPS accent), muted status colors.
+ * Chosen to stay readable in bright outdoor/field conditions -- avoid
+ * high-saturation or low-contrast combinations.
+ */
+:root {
+  --radius: 0.625rem;
+
+  --background: #faf8f4;
+  --foreground: #23281f;
+
+  --card: #ffffff;
+  --card-foreground: #23281f;
+
+  --popover: #ffffff;
+  --popover-foreground: #23281f;
+
+  --primary: #2f5d45;
+  --primary-foreground: #f7faf7;
+
+  --secondary: #eef1e4;
+  --secondary-foreground: #47572f;
+
+  --muted: #f0f1ec;
+  --muted-foreground: #6d7266;
+
+  --accent: #eaf2f8;
+  --accent-foreground: #205577;
+
+  --destructive: #b3392f;
+  --destructive-foreground: #fdf6f5;
+
+  --success: #3f8f52;
+  --success-foreground: #f5faf6;
+
+  --warning: #c17a1f;
+  --warning-foreground: #fbf5ec;
+
+  --sky: #4c86ae;
+  --sky-foreground: #f5f9fb;
+
+  --border: #e3e0d4;
+  --input: #e3e0d4;
+  --ring: #2f5d45;
+
+  --chart-1: #2f5d45;
+  --chart-2: #7c8f5c;
+  --chart-3: #4c86ae;
+  --chart-4: #c17a1f;
+  --chart-5: #8a6d8f;
+
+  --sidebar: #f2ede1;
+  --sidebar-foreground: #3a3f32;
+  --sidebar-border: #e5ddc9;
+  --sidebar-accent: #e7e0cf;
+  --sidebar-accent-foreground: #23281f;
+  --sidebar-primary: #2f5d45;
+  --sidebar-primary-foreground: #f7faf7;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+
+  --color-sky: var(--sky);
+  --color-sky-foreground: var(--sky-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+
+  --font-sans:
+    'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: var(--font-sans);
+  background-color: var(--color-background);
+  color: var(--color-foreground);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* Tailwind's Preflight resets buttons to `cursor: default` to match native
+   browser behavior, but that makes every button/toggle/tab in the app look
+   unclickable. Restore the pointer cursor app-wide instead of adding
+   `cursor-pointer` to every button one by one. */
+@layer base {
+  button:not(:disabled) {
+    cursor: pointer;
+  }
 }
 
+/* Leaflet renders its panes with inline z-index; keep it below our UI chrome
+   (dialogs, dropdowns, sheets) which use Tailwind's z-50 and above. */
+.leaflet-pane,
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 10;
+}
+
+/* Leaflet's default tooltip is a plain white bubble with a CSS-triangle arrow --
+   reskin it as an app-styled popover (border/radius/shadow to match popover.tsx
+   and dropdown-menu.tsx), keeping the arrow (recolored to match) so it still
+   visibly points at the marker underneath. `white-space` is reset because
+   Leaflet's default forces `nowrap`, which would keep the species badges below
+   from ever wrapping. (Opacity is fixed via the `<Tooltip>` component's own
+   `opacity` prop in MapView.tsx, not here -- Leaflet sets it as an inline style,
+   which a CSS class can't override.) */
+.leaflet-tooltip.birdnet-tooltip {
+  background: var(--popover);
+  color: var(--popover-foreground);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
+  padding: 0.625rem 0.75rem;
+  white-space: normal;
+}
+
+/* Only `direction="top"` is ever used (see MapView.tsx), so only that arrow needs recoloring. */
+.leaflet-tooltip.birdnet-tooltip.leaflet-tooltip-top::before {
+  border-top-color: var(--popover);
+}
+
+/* The selected/focused marker's tooltip stays open permanently (see MapView.tsx) -- give it
+   the same warning-amber accent as its pin, so the "this one is selected" signal carries over
+   to the tooltip too. A hover-only tooltip (unselected marker) keeps the neutral border. */
+.leaflet-tooltip.birdnet-tooltip.birdnet-tooltip-focused {
+  border-color: var(--warning);
+  border-width: 2px;
+}
+
+/* Leaflet's default zoom control renders at a fixed 26px -- noticeably smaller than the
+   surrounding floating panels (layer/heatmap toggles, the filters card on the Map page), so
+   enlarge and reskin it (border/radius/shadow/colors) to match their scale and styling. */
+.leaflet-control-zoom.leaflet-bar {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.leaflet-control-zoom.leaflet-bar a {
+  /* Two of these stacked (84px + the 1px divider below) land close to the filters
+     card's own rendered height (p-3 padding + its filter row + description line) --
+     not pixel-identical (that card's height shifts with content/language), but close
+     enough that the two floating elements read as the same scale side by side. */
+  width: 42px;
+  height: 42px;
+  line-height: 42px;
+  background-color: var(--popover);
+  color: var(--popover-foreground);
+  border-bottom-color: var(--border);
+}
+
+.leaflet-control-zoom.leaflet-bar a:hover,
+.leaflet-control-zoom.leaflet-bar a:focus {
+  background-color: var(--muted);
+}
+
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+  font-size: 22px;
+}
+
+/* Opt-in (MapView's `grayscaleBase` prop) desaturation of the base tile layer -- used
+   behind the heatmap so its own color gradient reads as the map's only color signal,
+   rather than competing with colorful satellite/terrain imagery underneath it. */
+.birdnet-grayscale-tiles .leaflet-tile-pane {
+  filter: grayscale(1) contrast(1.05);
+}

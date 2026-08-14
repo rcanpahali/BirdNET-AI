@@ -1,97 +1,37 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import layoutStyles from './layout.module.css';
-import UploadForm, { UploadFormValues } from './components/UploadForm';
-import ResultsPanel from './components/ResultsPanel';
-import PastRecordsPanel from './components/PastRecordsPanel';
-import { AnalyzerResponse } from './types';
+import { Suspense, lazy } from 'react';
+import { Route, Routes } from 'react-router-dom';
+import { AppShell } from './components/layout/AppShell';
+import { DashboardPage } from './pages/DashboardPage';
+import { RecordingsPage } from './pages/RecordingsPage';
+import { StatisticsPage } from './pages/StatisticsPage';
+import { ProjectsPage } from './pages/ProjectsPage';
+import { SettingsPage } from './pages/SettingsPage';
+import { Skeleton } from './components/ui/skeleton';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
-const FALLBACK_ERROR = 'An error occurred';
+// Leaflet + clustering are a meaningful bundle addition that only the Map
+// view needs -- code-split so the (more common) Dashboard view stays lean.
+const MapPage = lazy(() => import('./pages/MapPage'));
 
-const getErrorMessage = (err: unknown): string => {
-  if (axios.isAxiosError(err)) {
-    const detail = (err.response?.data as { detail?: string } | undefined)?.detail;
-    if (typeof detail === 'string' && detail.trim().length > 0) {
-      return detail;
-    }
-    return err.message || FALLBACK_ERROR;
-  }
-
-  if (err instanceof Error && err.message) {
-    return err.message;
-  }
-
-  return FALLBACK_ERROR;
-};
-
-const App: React.FC = () => {
-  const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<AnalyzerResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
-
-  const handleFileSelected = () => {
-    setError(null);
-    setResults(null);
-  };
-
-  const handleSubmit = async (values: UploadFormValues) => {
-    if (!values.file) {
-      setError('Please select an audio file');
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    setResults(null);
-
-    const formData = new FormData();
-    formData.append('file', values.file);
-    if (values.lat) formData.append('lat', values.lat);
-    if (values.lon) formData.append('lon', values.lon);
-
-    const parsedMinConf = parseFloat(values.minConf);
-    formData.append('min_conf', String(Number.isFinite(parsedMinConf) ? parsedMinConf : 0.25));
-
-    try {
-      const response = await axios.post<AnalyzerResponse>(`${API_URL}/analyze`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      setResults(response.data);
-      setRefreshTrigger(prev => prev + 1);
-    } catch (err) {
-      setError(getErrorMessage(err));
-    } finally {
-      setLoading(false);
-    }
-  };
-
+function App() {
   return (
-    <div className={layoutStyles.app}>
-      <PastRecordsPanel refreshTrigger={refreshTrigger} />
-      <div className={layoutStyles.contentWrapper}>
-        <div className={layoutStyles.container}>
-        <header className={layoutStyles.header}>
-          <h1 className={layoutStyles.title}>BirdNet Analyzer</h1>
-          <p className={layoutStyles.subtitle}>Verein für Vogelschutz und Landschaftspflege Bad Vilbel e.V.</p>
-        </header>
-
-        <UploadForm loading={loading} onSubmit={handleSubmit} onFileSelected={handleFileSelected} />
-
-        {error && (
-          <div className={layoutStyles.errorMessage}>
-            <strong>Error:</strong> {error}
-          </div>
-        )}
-
-        {results && <ResultsPanel results={results} />}
-        </div>
-      </div>
-    </div>
+    <Routes>
+      <Route element={<AppShell />}>
+        <Route index element={<DashboardPage />} />
+        <Route path="recordings" element={<RecordingsPage />} />
+        <Route
+          path="map"
+          element={
+            <Suspense fallback={<Skeleton className="h-[70vh] w-full" />}>
+              <MapPage />
+            </Suspense>
+          }
+        />
+        <Route path="statistics" element={<StatisticsPage />} />
+        <Route path="projects" element={<ProjectsPage />} />
+        <Route path="settings" element={<SettingsPage />} />
+      </Route>
+    </Routes>
   );
-};
+}
 
 export default App;

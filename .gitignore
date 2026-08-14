@@ -42,3 +42,6 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 
+# Claude Code personal overrides (machine-specific permissions, never shared)
+.claude/settings.local.json
+

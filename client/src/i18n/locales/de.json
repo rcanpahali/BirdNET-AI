@@ -1,0 +1,308 @@
+{
+  "common": {
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "saving": "Speichern…",
+    "notSet": "Nicht festgelegt",
+    "noLocationSet": "Kein Standort festgelegt",
+    "noDescriptionProvided": "Keine Beschreibung vorhanden.",
+    "noAudioQualityScoring": "Es wird noch keine Audioqualität berechnet.",
+    "notAssessed": "Nicht bewertet",
+    "comingSoon": "Demnächst verfügbar",
+    "sample": "Beispiel",
+    "sampleData": "Beispieldaten",
+    "placeholderNoteDefault": "Beispieldaten — noch nicht an ein Backend angebunden",
+    "viewAll": "Alle anzeigen",
+    "language": "Sprache",
+    "recordings": "Aufnahmen",
+    "detections": "Erkennungen",
+    "species": "Arten",
+    "duration": "Dauer",
+    "uploadSuccessRate": "Erfolgsquote beim Hochladen",
+    "noSpeciesDetectedYet": "Noch keine Arten erkannt.",
+    "clearSpecies": "Artenfilter zurücksetzen",
+    "noRecordingsAvailable": "Keine Aufnahmen vorhanden.",
+    "recordingCount_one": "{{count}} Aufnahme",
+    "recordingCount_other": "{{count}} Aufnahmen",
+    "mapEmptyTitle": "Wählen Sie einen Standort auf der Karte aus, um zu beginnen.",
+    "dateRangeAll": "Gesamter Zeitraum",
+    "dateRange7d": "Letzte 7 Tage",
+    "dateRange30d": "Letzte 30 Tage",
+    "dateRange90d": "Letzte 90 Tage",
+    "previousPage": "Vorherige Seite",
+    "nextPage": "Nächste Seite",
+    "pageOf": "Seite {{page}} von {{count}}",
+    "buyMeACoffee": "Spendiere unserem ehrenamtlichen Entwickler einen Kaffee"
+  },
+  "errors": {
+    "generic": "Ein Fehler ist aufgetreten"
+  },
+  "badges": {
+    "analyzed": "Analysiert",
+    "failed": "Fehlgeschlagen",
+    "analysisFailed": "Analyse fehlgeschlagen"
+  },
+  "nav": {
+    "primary": "Hauptnavigation",
+    "dashboard": "Dashboard",
+    "recordings": "Aufnahmen",
+    "map": "Interaktive Karte",
+    "statistics": "Statistiken",
+    "projects": "Projekte",
+    "settings": "Einstellungen"
+  },
+  "topNav": {
+    "notifications": "Benachrichtigungen",
+    "noNotificationsTitle": "Noch keine Benachrichtigungen",
+    "noNotificationsDescription": "Diese Funktion ist noch nicht an ein Backend angebunden -- es gibt nichts, wovon Benachrichtigungen kommen könnten.",
+    "guestName": "Gastforscher",
+    "guestRole": "Noch kein Benutzerkonto vorhanden",
+    "signOut": "Abmelden (noch keine Anmeldung)",
+    "closePanel": "Panel schließen"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "statSelectedProject": "Ausgewähltes Projekt",
+    "statTotalRecordings": "Aufnahmen gesamt",
+    "statActiveLocations": "Aktive Standorte",
+    "statSpeciesDetected": "Erkannte Arten",
+    "statBiodiversityIndex": "Biodiversitätsindex",
+    "statRecordingHours": "Aufnahmestunden",
+    "statRecentActivity": "Kürzliche Aktivität",
+    "statRecentActivityHint": "Aufnahmen in den letzten 7 Tagen",
+    "recordingLocationsTitle": "Aufnahmestandorte",
+    "noLocatedRecordingsYet": "Noch keine verorteten Aufnahmen.",
+    "weeklyActivityTitle": "Wöchentliche Aufnahmeaktivität",
+    "speciesDistributionTitle": "Artenverteilung",
+    "recentRecordingsTitle": "Letzte Aufnahmen",
+    "uploadFirstRecordingHint": "Laden Sie Ihre erste Audioaufnahme hoch.",
+    "seasonalActivityTitle": "Saisonale Aktivität"
+  },
+  "recordings": {
+    "new": "Neue Aufnahme",
+    "newCardSubtitle": "Eine neue Vogelaufnahme starten",
+    "label": "Aufnahme #{{id}}",
+    "page": {
+      "title": "Aufnahmen",
+      "description": "Jede analysierte Audioaufnahme dieses Projekts, als Tabelle oder Kartenansicht.",
+      "tableViewLabel": "Tabellenansicht",
+      "cardViewLabel": "Kartenansicht",
+      "emptyDescription": "Laden Sie Ihre erste Audioaufnahme hoch, um sie hier analysiert zu sehen.",
+      "noFilterResults": "Keine Aufnahmen entsprechen diesen Filtern."
+    },
+    "dialog": {
+      "description": "Nehmen Sie Audio direkt auf oder ziehen Sie eine Datei hierher, um sie mit BirdNET zu analysieren.",
+      "uploading": "Wird hochgeladen…",
+      "uploadFailed": "Hochladen fehlgeschlagen:",
+      "retry": "Erneut versuchen",
+      "done": "Fertig"
+    },
+    "table": {
+      "colName": "Name",
+      "colDate": "Datum",
+      "colLocation": "Standort",
+      "colStatus": "Status",
+      "colQuality": "Qualität",
+      "colActions": "Aktionen"
+    },
+    "cardGrid": {
+      "speciesCount_one": "{{count}} Art",
+      "speciesCount_other": "{{count}} Arten",
+      "noLocationRecorded": "Kein Standort erfasst"
+    },
+    "actions": {
+      "mapLabel": "Karte",
+      "deleteAria": "{{label}} löschen"
+    },
+    "deleteDialog": {
+      "title": "{{label}} löschen?",
+      "description": "Sie sind dabei, diese Aufnahme dauerhaft zu löschen:",
+      "deleteButton": "Aufnahme löschen",
+      "deleting": "Wird gelöscht…"
+    },
+    "detail": {
+      "tagsLabel": "Tags",
+      "noTagsYet": "Noch keine Tags.",
+      "removeTagAria": "Tag {{tag}} entfernen",
+      "addTagPlaceholder": "Tag hinzufügen und Enter drücken…",
+      "notesLabel": "Notizen",
+      "addNotePlaceholder": "Notiz zu dieser Aufnahme hinzufügen…",
+      "saveNote": "Notiz speichern",
+      "recordedLabel": "Aufgenommen",
+      "statusLabel": "Status",
+      "locationLabel": "Standort",
+      "notRecordedForFile": "Für diese Datei nicht erfasst",
+      "aiDetectionSummary": "KI-Erkennungsübersicht",
+      "avgConfidence": "Ø Konfidenz",
+      "speciesDetectedLabel": "Erkannte Arten",
+      "noSpeciesDetected": "Keine Arten erkannt.",
+      "speciesBadgeCount_one": "{{count}} Erkennung",
+      "speciesBadgeCount_other": "{{count}} Erkennungen",
+      "recordingAudioLabel": "Audioaufnahme",
+      "recordingQualityLabel": "Aufnahmequalität"
+    }
+  },
+  "map": {
+    "loading": "Aufnahmestandorte werden geladen…",
+    "locatedShown_one": "{{shown}} von {{count}} verorteter Aufnahme angezeigt",
+    "locatedShown_other": "{{shown}} von {{count}} verorteten Aufnahmen angezeigt",
+    "noGpsDescription": "Noch keine Aufnahmen mit GPS-Koordinaten. Standorte werden automatisch erfasst, wenn Sie mit aktiviertem Standortzugriff aufnehmen oder hochladen.",
+    "satelliteLabel": "Satellit",
+    "terrainLabel": "Gelände",
+    "markersLabel": "Markierungen",
+    "heatmapLabel": "Heatmap"
+  },
+  "projects": {
+    "new": "Neues Projekt",
+    "page": {
+      "description": "Wechseln Sie zwischen Projekten, um Aufnahmen, Standorte und Auswertungen zu vergleichen."
+    },
+    "card": {
+      "currentlyActive": "Derzeit aktiv",
+      "switchToProject": "Zu Projekt wechseln",
+      "details": "Details",
+      "editAria": "{{name}} bearbeiten",
+      "deleteAria": "{{name}} löschen"
+    },
+    "detail": {
+      "recordingsLabel": "Aufnahmen",
+      "assignedUsers": "Zugewiesene Benutzer",
+      "notIntroducedYet": "Noch nicht vorgestellt",
+      "teamAssignmentNote": "Die Teamzuweisung ist noch nicht implementiert -- Projekte haben noch kein Benutzermodell."
+    },
+    "selector": {
+      "switchProject": "Projekt wechseln"
+    },
+    "deleteDialog": {
+      "title": "{{name}} löschen?",
+      "confirmPrefix": "Dies löscht dauerhaft",
+      "confirmSuffix_one": "Aufnahme und alle zugehörigen Erkennungen. Dies kann nicht rückgängig gemacht werden.",
+      "confirmSuffix_other": "Aufnahmen und alle zugehörigen Erkennungen. Dies kann nicht rückgängig gemacht werden.",
+      "confirmEmpty": "Dieses Projekt hat noch keine Aufnahmen. Dies kann nicht rückgängig gemacht werden.",
+      "deleting": "Wird gelöscht…",
+      "deleteProject": "Projekt löschen"
+    },
+    "editDialog": {
+      "title": "Projekt bearbeiten",
+      "description": "Aktualisieren Sie Name, Zielstandort und Beschreibung dieses Projekts.",
+      "saveChanges": "Änderungen speichern"
+    },
+    "newDialog": {
+      "title": "Projekt erstellen",
+      "description": "Aufnahmen sind einem Projekt zugeordnet -- erstellen Sie eines, um mit dem Hochladen von Audio zu beginnen.",
+      "creating": "Wird erstellt…",
+      "create": "Projekt erstellen"
+    }
+  },
+  "forms": {
+    "project": {
+      "nameLabel": "Projektname",
+      "namePlaceholder": "z. B. Uferstreifen-Erhebung 2026",
+      "locationLabel": "Zielstandort",
+      "locationPlaceholder": "z. B. Taunusvorland, Deutschland",
+      "descriptionLabel": "Beschreibung",
+      "descriptionPlaceholder": "Kurze Zusammenfassung der Projektziele"
+    }
+  },
+  "statistics": {
+    "title": "Statistiken",
+    "description": "Auswertungen aus Ihren Aufnahmen und Erkennungen.",
+    "recordingFrequencyTitle": "Aufnahmehäufigkeit",
+    "recordingsByLocationTitle": "Aufnahmen nach Standort",
+    "noLocatedRecordingsInRange": "Keine verorteten Aufnahmen in diesem Zeitraum.",
+    "longerRangeSeasonalAnalytics": "Langzeit- & Saisonauswertungen",
+    "speciesTrendsTitle": "Artentrends über die Zeit",
+    "seasonalComparisonTitle": "Saisonvergleich",
+    "biodiversityHeatmapTitle": "Biodiversitäts-Heatmap",
+    "uploadStatisticsTitle": "Upload-Statistik",
+    "failedUploadsInRange": "Fehlgeschlagene Uploads (im Zeitraum)",
+    "thisYear": "Dieses Jahr",
+    "lastYear": "Letztes Jahr",
+    "seasons": {
+      "winter": "Winter",
+      "spring": "Frühling",
+      "summer": "Sommer",
+      "autumn": "Herbst"
+    },
+    "heatmapLocations": {
+      "northBank": "Nordufer",
+      "reedBed": "Schilfgürtel",
+      "oldOrchard": "Alter Obstgarten",
+      "weirCrossing": "Wehrübergang",
+      "meadowEdge": "Wiesenrand"
+    }
+  },
+  "sidebar": {
+    "poweredBy": "BirdNET Analyzer von der Cornell Lab of Ornithology und der Technischen Universität Chemnitz",
+    "openMenu": "Menü öffnen"
+  },
+  "settings": {
+    "description": "Konto-, Projekt- und Plattformeinstellungen.",
+    "placeholderTitle": "Einstellungen sind noch nicht verfügbar",
+    "placeholderDescription": "Es gibt noch kein Benutzer-/Kontosystem oder konfigurierbare Einstellungen -- diese Seite ist ein Platzhalter dafür.",
+    "placeholderNote": "Es sind noch keine Einstellungen an ein Backend angebunden.",
+    "language": {
+      "title": "Sprache",
+      "description": "Wählen Sie die Sprache der Oberfläche. Ihre Auswahl wird auf diesem Gerät gespeichert.",
+      "english": "English",
+      "german": "Deutsch"
+    }
+  },
+  "appShell": {
+    "createFirstProjectTitle": "Erstellen Sie Ihr erstes Projekt, um zu beginnen.",
+    "createFirstProjectDescription": "Jede Aufnahme gehört zu einem Projekt -- erstellen Sie eines, um Audio hochzuladen und zu analysieren."
+  },
+  "upload": {
+    "audioSourceLabel": "Audioquelle",
+    "record": "Aufnehmen",
+    "upload": "Hochladen",
+    "audioFileLabel": "Audiodatei",
+    "dragDropHint": "Audiodatei hierher ziehen oder klicken, um eine Datei auszuwählen",
+    "detectingLocation": "Standort wird ermittelt…",
+    "hideLocation": "Ausblenden",
+    "editLocation": "Bearbeiten",
+    "setLocationManually": "Manuell festlegen",
+    "clearLocation": "Löschen",
+    "latitude": "Breitengrad",
+    "longitude": "Längengrad",
+    "minimumConfidence": "Mindestkonfidenz",
+    "analyzing": "Wird analysiert…",
+    "analyzeAudio": "Audio analysieren",
+    "errors": {
+      "selectFile": "Bitte wählen Sie eine Audiodatei aus",
+      "latMustBeNumber": "Breitengrad muss eine Zahl sein",
+      "lonMustBeNumber": "Längengrad muss eine Zahl sein"
+    }
+  },
+  "recorder": {
+    "micPermissionError": "Zugriff auf das Mikrofon nicht möglich. Bitte Berechtigung erteilen.",
+    "stopRecording": "Aufnahme beenden",
+    "startRecording": "Aufnahme starten",
+    "recording": "Aufnahme läuft…",
+    "tapToRecord": "Zum Aufnehmen tippen",
+    "recordingReady": "Aufnahme bereit ({{time}})",
+    "deleteRecordingTitle": "Aufnahme löschen und neu beginnen"
+  },
+  "audio": {
+    "zoomOutWaveform": "Wellenform verkleinern",
+    "zoomInWaveform": "Wellenform vergrößern",
+    "downloadRecording": "Aufnahme herunterladen",
+    "seekWithinRecording": "In der Aufnahme springen",
+    "notStoredNotice": "Audio wird für vergangene Aufnahmen nicht gespeichert -- Wiedergabe ist nicht möglich.",
+    "waveformPlaceholder": "Wellenform-Platzhalter",
+    "waveformPlaceholderNote": "Echte Wellenform und Wiedergabe funktionieren nur für Aufnahmen, die in dieser Sitzung analysiert wurden."
+  },
+  "results": {
+    "title": "Analyseergebnisse",
+    "foundPrefix": "Gefunden:",
+    "detectionSuffix_one": "Erkennung in",
+    "detectionSuffix_other": "Erkennungen in",
+    "noDetections": "Bei der aktuellen Konfidenzschwelle wurden keine Vogellaute erkannt.",
+    "confidencePrefix": "Konfidenz:",
+    "timePrefix": "Zeit:",
+    "keepOrDeletePrompt": "Es wurden keine Arten erkannt. Sie können diese Aufnahme löschen oder in Ihrem Verlauf behalten.",
+    "delete": "Löschen",
+    "deleting": "Wird gelöscht…",
+    "keep": "Behalten"
+  }
+}

@@ -1,0 +1,308 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "close": "Close",
+    "saving": "Saving…",
+    "notSet": "Not set",
+    "noLocationSet": "No location set",
+    "noDescriptionProvided": "No description provided.",
+    "noAudioQualityScoring": "No audio quality scoring is computed yet.",
+    "notAssessed": "Not assessed",
+    "comingSoon": "Coming soon",
+    "sample": "Sample",
+    "sampleData": "Sample data",
+    "placeholderNoteDefault": "Sample data — backend support not implemented yet",
+    "viewAll": "View all",
+    "language": "Language",
+    "recordings": "Recordings",
+    "detections": "Detections",
+    "species": "Species",
+    "duration": "Duration",
+    "uploadSuccessRate": "Upload success rate",
+    "noSpeciesDetectedYet": "No species detected yet.",
+    "clearSpecies": "Clear species",
+    "noRecordingsAvailable": "No recordings available.",
+    "recordingCount_one": "{{count}} recording",
+    "recordingCount_other": "{{count}} recordings",
+    "mapEmptyTitle": "Select a map location to begin.",
+    "dateRangeAll": "All time",
+    "dateRange7d": "Last 7 days",
+    "dateRange30d": "Last 30 days",
+    "dateRange90d": "Last 90 days",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "pageOf": "Page {{page}} of {{count}}",
+    "buyMeACoffee": "Buy our volunteer developer a coffee"
+  },
+  "errors": {
+    "generic": "An error occurred"
+  },
+  "badges": {
+    "analyzed": "Analyzed",
+    "failed": "Failed",
+    "analysisFailed": "Analysis failed"
+  },
+  "nav": {
+    "primary": "Primary",
+    "dashboard": "Dashboard",
+    "recordings": "Recordings",
+    "map": "Interactive Map",
+    "statistics": "Statistics",
+    "projects": "Projects",
+    "settings": "Settings"
+  },
+  "topNav": {
+    "notifications": "Notifications",
+    "noNotificationsTitle": "No notifications yet",
+    "noNotificationsDescription": "This feature is not wired up to a backend yet -- there's nothing to push notifications from.",
+    "guestName": "Guest Researcher",
+    "guestRole": "No account system yet",
+    "signOut": "Sign out (no auth yet)",
+    "closePanel": "Close panel"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "statSelectedProject": "Selected project",
+    "statTotalRecordings": "Total recordings",
+    "statActiveLocations": "Active locations",
+    "statSpeciesDetected": "Species detected",
+    "statBiodiversityIndex": "Biodiversity index",
+    "statRecordingHours": "Recording hours",
+    "statRecentActivity": "Recent activity",
+    "statRecentActivityHint": "Recordings in the last 7 days",
+    "recordingLocationsTitle": "Recording locations",
+    "noLocatedRecordingsYet": "No located recordings yet.",
+    "weeklyActivityTitle": "Weekly recording activity",
+    "speciesDistributionTitle": "Species distribution",
+    "recentRecordingsTitle": "Recent recordings",
+    "uploadFirstRecordingHint": "Upload your first audio recording.",
+    "seasonalActivityTitle": "Seasonal activity"
+  },
+  "recordings": {
+    "new": "New recording",
+    "newCardSubtitle": "Start a new bird recording session",
+    "label": "Recording #{{id}}",
+    "page": {
+      "title": "Recordings",
+      "description": "Every audio recording analyzed for this project, in table or card view.",
+      "tableViewLabel": "Table view",
+      "cardViewLabel": "Card view",
+      "emptyDescription": "Upload your first audio recording to see it analyzed here.",
+      "noFilterResults": "No recordings match these filters."
+    },
+    "dialog": {
+      "description": "Record audio directly, or drag and drop a file to analyze it with BirdNET.",
+      "uploading": "Uploading…",
+      "uploadFailed": "Upload failed:",
+      "retry": "Retry",
+      "done": "Done"
+    },
+    "table": {
+      "colName": "Name",
+      "colDate": "Date",
+      "colLocation": "Location",
+      "colStatus": "Status",
+      "colQuality": "Quality",
+      "colActions": "Actions"
+    },
+    "cardGrid": {
+      "speciesCount_one": "{{count}} species",
+      "speciesCount_other": "{{count}} species",
+      "noLocationRecorded": "No location recorded"
+    },
+    "actions": {
+      "mapLabel": "Map",
+      "deleteAria": "Delete {{label}}"
+    },
+    "deleteDialog": {
+      "title": "Delete {{label}}?",
+      "description": "You're about to permanently delete this recording:",
+      "deleteButton": "Delete recording",
+      "deleting": "Deleting…"
+    },
+    "detail": {
+      "tagsLabel": "Tags",
+      "noTagsYet": "No tags yet.",
+      "removeTagAria": "Remove tag {{tag}}",
+      "addTagPlaceholder": "Add a tag and press Enter…",
+      "notesLabel": "Notes",
+      "addNotePlaceholder": "Add a note about this recording…",
+      "saveNote": "Save note",
+      "recordedLabel": "Recorded",
+      "statusLabel": "Status",
+      "locationLabel": "Location",
+      "notRecordedForFile": "Not recorded for this file",
+      "aiDetectionSummary": "AI detection summary",
+      "avgConfidence": "Avg. confidence",
+      "speciesDetectedLabel": "Species detected",
+      "noSpeciesDetected": "No species detected.",
+      "speciesBadgeCount_one": "{{count}} detection",
+      "speciesBadgeCount_other": "{{count}} detections",
+      "recordingAudioLabel": "Recording audio",
+      "recordingQualityLabel": "Recording quality"
+    }
+  },
+  "map": {
+    "loading": "Loading recording locations…",
+    "locatedShown_one": "{{shown}} of {{count}} located recording shown",
+    "locatedShown_other": "{{shown}} of {{count}} located recordings shown",
+    "noGpsDescription": "No recordings have GPS coordinates yet. Locations are captured automatically when you record or upload with location access enabled.",
+    "satelliteLabel": "Satellite",
+    "terrainLabel": "Terrain",
+    "markersLabel": "Markers",
+    "heatmapLabel": "Heatmap"
+  },
+  "projects": {
+    "new": "New project",
+    "page": {
+      "description": "Navigate between projects to compare recordings, locations, and analytics."
+    },
+    "card": {
+      "currentlyActive": "Currently active",
+      "switchToProject": "Switch to project",
+      "details": "Details",
+      "editAria": "Edit {{name}}",
+      "deleteAria": "Delete {{name}}"
+    },
+    "detail": {
+      "recordingsLabel": "Recordings",
+      "assignedUsers": "Assigned users",
+      "notIntroducedYet": "Not introduced yet",
+      "teamAssignmentNote": "Team assignment isn't implemented -- projects have no user model yet."
+    },
+    "selector": {
+      "switchProject": "Switch project"
+    },
+    "deleteDialog": {
+      "title": "Delete {{name}}?",
+      "confirmPrefix": "This will permanently delete",
+      "confirmSuffix_one": "recording and all of their detections. This cannot be undone.",
+      "confirmSuffix_other": "recordings and all of their detections. This cannot be undone.",
+      "confirmEmpty": "This project has no recordings yet. This cannot be undone.",
+      "deleting": "Deleting…",
+      "deleteProject": "Delete project"
+    },
+    "editDialog": {
+      "title": "Edit project",
+      "description": "Update this project's name, target location, and description.",
+      "saveChanges": "Save changes"
+    },
+    "newDialog": {
+      "title": "Create project",
+      "description": "Recordings are scoped to a project -- create one to start uploading audio.",
+      "creating": "Creating…",
+      "create": "Create project"
+    }
+  },
+  "forms": {
+    "project": {
+      "nameLabel": "Project name",
+      "namePlaceholder": "e.g. Riverbank Survey 2026",
+      "locationLabel": "Target location",
+      "locationPlaceholder": "e.g. Taunus foothills, Germany",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Short summary of this project's goals"
+    }
+  },
+  "statistics": {
+    "title": "Statistics",
+    "description": "Analytics derived from your recordings and detections.",
+    "recordingFrequencyTitle": "Recording frequency",
+    "recordingsByLocationTitle": "Recordings by location",
+    "noLocatedRecordingsInRange": "No located recordings in this range.",
+    "longerRangeSeasonalAnalytics": "Longer-range & seasonal analytics",
+    "speciesTrendsTitle": "Species trends over time",
+    "seasonalComparisonTitle": "Seasonal comparison",
+    "biodiversityHeatmapTitle": "Biodiversity heatmap",
+    "uploadStatisticsTitle": "Upload statistics",
+    "failedUploadsInRange": "Failed uploads (in range)",
+    "thisYear": "This year",
+    "lastYear": "Last year",
+    "seasons": {
+      "winter": "Winter",
+      "spring": "Spring",
+      "summer": "Summer",
+      "autumn": "Autumn"
+    },
+    "heatmapLocations": {
+      "northBank": "North bank",
+      "reedBed": "Reed bed",
+      "oldOrchard": "Old orchard",
+      "weirCrossing": "Weir crossing",
+      "meadowEdge": "Meadow edge"
+    }
+  },
+  "sidebar": {
+    "poweredBy": "BirdNET Analyzer by the Cornell Lab of Ornithology and Chemnitz University of Technology",
+    "openMenu": "Open menu"
+  },
+  "settings": {
+    "description": "Account, project, and platform preferences.",
+    "placeholderTitle": "Settings aren't implemented yet",
+    "placeholderDescription": "There's no user/account system or configurable preferences yet -- this page is a placeholder for where they'll live.",
+    "placeholderNote": "No settings are wired up to a backend yet.",
+    "language": {
+      "title": "Language",
+      "description": "Choose the interface language. Your choice is saved on this device.",
+      "english": "English",
+      "german": "Deutsch"
+    }
+  },
+  "appShell": {
+    "createFirstProjectTitle": "Create your first project to get started.",
+    "createFirstProjectDescription": "Every recording belongs to a project -- create one to start uploading and analyzing audio."
+  },
+  "upload": {
+    "audioSourceLabel": "Audio source",
+    "record": "Record",
+    "upload": "Upload",
+    "audioFileLabel": "Audio file",
+    "dragDropHint": "Drag and drop an audio file, or click to browse",
+    "detectingLocation": "Detecting your location…",
+    "hideLocation": "Hide",
+    "editLocation": "Edit",
+    "setLocationManually": "Set manually",
+    "clearLocation": "Clear",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "minimumConfidence": "Minimum confidence",
+    "analyzing": "Analyzing…",
+    "analyzeAudio": "Analyze audio",
+    "errors": {
+      "selectFile": "Please select an audio file",
+      "latMustBeNumber": "Latitude must be a number",
+      "lonMustBeNumber": "Longitude must be a number"
+    }
+  },
+  "recorder": {
+    "micPermissionError": "Unable to access microphone. Please grant permission.",
+    "stopRecording": "Stop Recording",
+    "startRecording": "Start Recording",
+    "recording": "Recording…",
+    "tapToRecord": "Tap to record",
+    "recordingReady": "Recording ready ({{time}})",
+    "deleteRecordingTitle": "Delete recording and start over"
+  },
+  "audio": {
+    "zoomOutWaveform": "Zoom out waveform",
+    "zoomInWaveform": "Zoom in waveform",
+    "downloadRecording": "Download recording",
+    "seekWithinRecording": "Seek within recording",
+    "notStoredNotice": "Audio isn't stored for past recordings yet -- playback is unavailable.",
+    "waveformPlaceholder": "Waveform placeholder",
+    "waveformPlaceholderNote": "Real waveform + playback only works for recordings analyzed in this session."
+  },
+  "results": {
+    "title": "Analysis results",
+    "foundPrefix": "Found",
+    "detectionSuffix_one": "detection in",
+    "detectionSuffix_other": "detections in",
+    "noDetections": "No bird sounds detected with the current confidence threshold.",
+    "confidencePrefix": "Confidence:",
+    "timePrefix": "Time:",
+    "keepOrDeletePrompt": "No species were detected. You can delete this recording or keep it in your history.",
+    "delete": "Delete",
+    "deleting": "Deleting…",
+    "keep": "Keep"
+  }
+}
